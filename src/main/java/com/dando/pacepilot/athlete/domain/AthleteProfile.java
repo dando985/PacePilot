@@ -7,8 +7,8 @@ public record AthleteProfile(
         String displayName,
         ExperienceLevel experienceLevel,
         int availableTrainingDaysPerWeek,
-        double currentWeeklyDistance,
-        DistanceUnit distanceUnit,
+        Double currentWeeklyRunningDistance,
+        DistanceUnit runningDistanceUnit,
         FitnessGoal goal
 ) {
 }
