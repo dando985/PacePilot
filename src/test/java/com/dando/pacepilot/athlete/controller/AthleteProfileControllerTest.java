@@ -109,7 +109,7 @@ class AthleteProfileControllerTest {
         verify(profileService).findProfileById(unknownId);
     }
 
-    // Helper method to create sample athlete profile
+    // Helper method to create sample athlete profile with specific UUID and name
     private AthleteProfile createProfile(UUID id, String displayName) {
         FitnessGoal goal = new FitnessGoal(
                 GoalType.MARATHON,
