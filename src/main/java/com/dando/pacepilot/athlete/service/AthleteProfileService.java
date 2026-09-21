@@ -21,12 +21,10 @@ public class AthleteProfileService {
     }
 
     public AthleteProfile createProfile(CreateAthleteProfileRequest request) {
-        CreateFitnessGoalRequest goalRequest = request.goal();
-
         FitnessGoal goal = new FitnessGoal(
-                goalRequest.type(),
-                goalRequest.targetDate(),
-                goalRequest.targetTimeMinutes()
+                request.goal().type(),
+                request.goal().targetDate(),
+                request.goal().targetTimeMinutes()
         );
 
         AthleteProfile profile = new AthleteProfile(
