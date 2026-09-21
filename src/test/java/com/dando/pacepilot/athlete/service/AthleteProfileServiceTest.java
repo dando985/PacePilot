@@ -51,7 +51,7 @@ class AthleteProfileServiceTest {
                         goalRequest
                 );
 
-        // Whenever service saves an athlete, mock repository should return the object it received so we can store the random UUID generated
+        // Whenever service saves an athlete, mock repository should return the same athlete object it received
         when(profileRepository.save(any(AthleteProfile.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
