@@ -45,8 +45,10 @@ class SemanticIndexServiceTest {
 
         when(embeddingIndexer.createIndex(chunks)).thenReturn(createdIndex);
 
+        // Build first semantic index
         List<EmbeddedTrainingChunk> firstResult = semanticIndexService.getOrCreateIndex();
 
+        // Reuse cached index instead of rebuilding it
         List<EmbeddedTrainingChunk> secondResult = semanticIndexService.getOrCreateIndex();
 
         assertThat(firstResult).containsExactlyElementsOf(createdIndex);
