@@ -54,9 +54,11 @@ public class OllamaEmbeddingProvider implements EmbeddingProvider {
         return embedding.stream().mapToDouble(Double::doubleValue).toArray();
     }
 
+    // helper record to build HTTP request as a JSON
     private record OllamaEmbedRequest(String model, String input) {
     }
 
+    // helper record to convert HTTP JSON response as a Java object
     private record OllamaEmbedResponse(String model, List<List<Double>> embeddings) {
     }
 }
