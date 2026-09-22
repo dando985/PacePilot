@@ -13,8 +13,7 @@ class ClasspathTrainingDocumentLoaderTest {
 
     @Test
     void loadsAllMarkdownDocuments() {
-        List<TrainingDocument> documents =
-                documentLoader.loadDocuments();
+        List<TrainingDocument> documents = documentLoader.loadDocuments();
 
         assertThat(documents)
                 .extracting(TrainingDocument::id)
@@ -30,9 +29,7 @@ class ClasspathTrainingDocumentLoaderTest {
 
         TrainingDocument runningDocument = documents.stream()
                 .filter(document ->
-                        document.id().equals(
-                                "beginner-running-foundations"
-                        )
+                        document.id().equals("beginner-running-foundations")
                 )
                 .findFirst()
                 .orElseThrow();
