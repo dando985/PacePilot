@@ -65,11 +65,7 @@ class MarkdownSectionChunkerTest {
         List<TrainingChunk> chunks = loader
                 .loadDocuments()
                 .stream()
-                .flatMap(document ->
-                        chunker
-                                .createChunks(document)
-                                .stream()
-                )
+                .flatMap(document -> chunker.createChunks(document).stream())
                 .toList();
 
         assertThat(chunks)
