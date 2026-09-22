@@ -21,9 +21,7 @@ public class OllamaEmbeddingProvider implements EmbeddingProvider {
     @Override
     public double[] createEmbedding(String text) {
         if (text == null || text.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Text to embed must not be blank."
-            );
+            throw new IllegalArgumentException("Text to embed must not be blank.");
         }
 
         OllamaEmbedRequest request = new OllamaEmbedRequest(model, text);
