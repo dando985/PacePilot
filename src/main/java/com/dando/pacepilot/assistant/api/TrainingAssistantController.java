@@ -19,9 +19,7 @@ public class TrainingAssistantController {
     }
 
     @PostMapping("/ask")
-    public TrainingAnswerResponse ask(@Valid @RequestBody AskTrainingAssistantRequest request) {
-        TrainingAnswer answer = assistantService.ask(request.question());
-
-        return TrainingAnswerResponse.from(answer);
+    public TrainingAnswer ask(@Valid @RequestBody AskTrainingAssistantRequest request) {
+        return assistantService.ask(request.question());
     }
 }
