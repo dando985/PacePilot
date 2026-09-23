@@ -23,6 +23,9 @@ public class OllamaTextGenerationProvider implements TextGenerationProvider {
     public String generate(String systemMessage, String userMessage) {
         validateMessages(systemMessage, userMessage);
 
+        // limit number of tokens used by LLM
+        int TOKENS = 300;
+
         OllamaChatRequest request =
                 new OllamaChatRequest(
                         model,
@@ -39,7 +42,7 @@ public class OllamaTextGenerationProvider implements TextGenerationProvider {
                         false,
                         Map.of(
                                 "num_predict",
-                                300
+                                TOKENS
                         )
                 );
 
