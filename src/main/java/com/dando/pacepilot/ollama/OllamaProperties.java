@@ -1,4 +1,4 @@
-package com.dando.pacepilot.embedding.ollama;
+package com.dando.pacepilot.ollama;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,6 +11,7 @@ import java.net.URI;
 @ConfigurationProperties(prefix = "pacepilot.ollama")
 public record OllamaProperties(
         @NotNull URI baseUrl,
-        @NotBlank String embeddingModel
+        @NotBlank String embeddingModel,
+        @NotBlank String chatModel
 ) {
 }
