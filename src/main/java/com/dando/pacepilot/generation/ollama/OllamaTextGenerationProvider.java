@@ -7,6 +7,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 import java.util.List;
+import java.util.Map;
 
 public class OllamaTextGenerationProvider implements TextGenerationProvider {
 
@@ -26,10 +27,20 @@ public class OllamaTextGenerationProvider implements TextGenerationProvider {
                 new OllamaChatRequest(
                         model,
                         List.of(
-                                new OllamaChatMessage("system", systemMessage),
-                                new OllamaChatMessage("user", userMessage)
+                                new OllamaChatMessage(
+                                        "system",
+                                        systemMessage
+                                ),
+                                new OllamaChatMessage(
+                                        "user",
+                                        userMessage
+                                )
                         ),
-                        false
+                        false,
+                        Map.of(
+                                "num_predict",
+                                300
+                        )
                 );
 
         OllamaChatResponse response;
@@ -68,12 +79,24 @@ public class OllamaTextGenerationProvider implements TextGenerationProvider {
         }
     }
 
-    private record OllamaChatRequest(String model, List<OllamaChatMessage> messages, boolean stream) {
+    private record OllamaChatRequest(
+            String model,
+            List<OllamaChatMessage> messages,
+            boolean stream,
+            Map<String, Integer> options
+    ) {
     }
 
-    private record OllamaChatMessage(String role, String content) {
+    private record OllamaChatMessage(
+            String role,
+            String content
+    ) {
     }
 
-    private record OllamaChatResponse(String model, OllamaChatMessage message, boolean done) {
+    private record OllamaChatResponse(
+            String model,
+            OllamaChatMessage message,
+            boolean done
+    ) {
     }
 }
