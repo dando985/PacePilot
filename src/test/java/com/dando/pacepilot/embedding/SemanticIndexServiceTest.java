@@ -4,6 +4,7 @@ import com.dando.pacepilot.knowledge.domain.TrainingChunk;
 import com.dando.pacepilot.knowledge.service.TrainingKnowledgeService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -11,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,7 +24,7 @@ class SemanticIndexServiceTest {
     private TrainingKnowledgeService knowledgeService;
 
     @Mock
-    private TrainingEmbeddingIndexer embeddingIndexer;
+    private EmbeddingProvider embeddingProvider;
 
     @InjectMocks
     private SemanticIndexService semanticIndexService;
@@ -31,82 +33,79 @@ class SemanticIndexServiceTest {
     void buildsIndexOnceAndReusesIt() {
         TrainingChunk chunk = createTrainingChunk();
 
-        List<TrainingChunk> chunks = List.of(chunk);
+        when(knowledgeService.getAllChunks()).thenReturn(List.of(chunk));
 
-        List<EmbeddedTrainingChunk> createdIndex =
-                List.of(
-                        new EmbeddedTrainingChunk(
-                                chunk,
-                                new double[]{0.10, 0.20, 0.30}
-                        )
-                );
+        when(embeddingProvider.createEmbedding(anyString()))
+                .thenReturn(new double[]{0.10, 0.20, 0.30});
 
-        when(knowledgeService.getAllChunks()).thenReturn(chunks);
-
-        when(embeddingIndexer.createIndex(chunks)).thenReturn(createdIndex);
-
-        // Build first semantic index
         List<EmbeddedTrainingChunk> firstResult = semanticIndexService.getOrCreateIndex();
 
-        // Reuse cached index instead of rebuilding it
         List<EmbeddedTrainingChunk> secondResult = semanticIndexService.getOrCreateIndex();
 
-        assertThat(firstResult).containsExactlyElementsOf(createdIndex);
+        assertThat(firstResult).hasSize(1);
+
+        assertThat(firstResult.getFirst().getChunk()).isSameAs(chunk);
+
+        assertThat(firstResult.getFirst().getEmbedding()).containsExactly(0.10, 0.20, 0.30);
 
         assertThat(secondResult).isSameAs(firstResult);
 
-        verify(knowledgeService, times(1)).getAllChunks();
+        verify(knowledgeService).getAllChunks();
 
-        verify(embeddingIndexer, times(1)).createIndex(chunks);
+        verify(embeddingProvider).createEmbedding(anyString());
     }
 
     @Test
-    void rebuildsTheExistingIndex() {
-        TrainingChunk chunk = createTrainingChunk();
+    void createsAnEmbeddingForEveryChunkAndPreservesOrder() {
+        TrainingChunk firstChunk = createTrainingChunk();
 
-        List<TrainingChunk> chunks = List.of(chunk);
-
-        List<EmbeddedTrainingChunk> firstIndex =
-                List.of(
-                        new EmbeddedTrainingChunk(
-                                chunk,
-                                new double[]{0.10, 0.20, 0.30}
-                        )
+        TrainingChunk secondChunk =
+                new TrainingChunk(
+                        "fitness-chunk-1",
+                        "fitness-document",
+                        "General Fitness Foundations",
+                        "knowledge/general-fitness-foundations.md",
+                        "Strength training",
+                        1,
+                        "Adults should perform regular strength training."
                 );
 
-        List<EmbeddedTrainingChunk> rebuiltIndex =
-                List.of(
-                        new EmbeddedTrainingChunk(
-                                chunk,
-                                new double[]{0.40, 0.50, 0.60}
-                        )
+        when(knowledgeService.getAllChunks())
+                .thenReturn(List.of(firstChunk, secondChunk));
+
+        when(embeddingProvider.createEmbedding(anyString()))
+                .thenReturn(
+                        new double[]{0.10, 0.20, 0.30},
+                        new double[]{0.40, 0.50, 0.60}
                 );
 
-        when(knowledgeService.getAllChunks()).thenReturn(chunks);
+        List<EmbeddedTrainingChunk> result = semanticIndexService.getOrCreateIndex();
 
-        when(embeddingIndexer.createIndex(chunks)).thenReturn(firstIndex).thenReturn(rebuiltIndex);
+        assertThat(result)
+                .extracting(EmbeddedTrainingChunk::getChunk)
+                .containsExactly(firstChunk, secondChunk);
 
-        // Build first semantic index
-        List<EmbeddedTrainingChunk> originalResult = semanticIndexService.getOrCreateIndex();
+        ArgumentCaptor<String> textCaptor = ArgumentCaptor.forClass(String.class);
 
-        // Rebuild semantic index
-        List<EmbeddedTrainingChunk> rebuiltResult = semanticIndexService.rebuildIndex();
+        verify(embeddingProvider, times(2)).createEmbedding(textCaptor.capture());
 
-        // Reuse the last cached semantic index (rebuilt index)
-        List<EmbeddedTrainingChunk> cachedResult = semanticIndexService.getOrCreateIndex();
+        List<String> embeddedTexts = textCaptor.getAllValues();
 
-        assertThat(originalResult.getFirst().getEmbedding()).containsExactly(0.10, 0.20, 0.30);
+        assertThat(embeddedTexts.get(0))
+                .contains(
+                        "Beginner Running Foundations",
+                        "Recovery between runs",
+                        "Beginners should recover"
+                );
 
-        assertThat(rebuiltResult.getFirst().getEmbedding()).containsExactly(0.40, 0.50, 0.60);
-
-        assertThat(cachedResult).isSameAs(rebuiltResult);
-
-        verify(knowledgeService, times(2)).getAllChunks();
-
-        verify(embeddingIndexer, times(2)).createIndex(chunks);
+        assertThat(embeddedTexts.get(1))
+                .contains(
+                        "General Fitness Foundations",
+                        "Strength training",
+                        "Adults should perform"
+                );
     }
 
-    // helper to create sample training chunk
     private TrainingChunk createTrainingChunk() {
         return new TrainingChunk(
                 "running-chunk-1",
