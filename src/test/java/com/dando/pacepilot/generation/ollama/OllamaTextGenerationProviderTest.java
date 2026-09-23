@@ -25,7 +25,7 @@ class OllamaTextGenerationProviderTest {
 
         mockServer = MockRestServiceServer.bindTo(builder).build();
 
-        provider = new OllamaTextGenerationProvider(builder.build(), "llama3.2:3b");
+        provider = new OllamaTextGenerationProvider(builder.build(), "llama3.2:3b", 300);
     }
 
     @Test
@@ -45,7 +45,10 @@ class OllamaTextGenerationProviderTest {
                               "content": "How much recovery does a beginner need?"
                             }
                           ],
-                          "stream": false
+                          "stream": false,
+                          "options": {
+                            "num_predict": 300
+                          }
                         }
                         """))
                 .andRespond(withSuccess(

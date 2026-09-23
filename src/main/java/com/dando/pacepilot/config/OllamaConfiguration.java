@@ -27,6 +27,6 @@ public class OllamaConfiguration {
 
     @Bean
     public TextGenerationProvider textGenerationProvider(@Qualifier("ollamaRestClient") RestClient restClient, OllamaProperties properties) {
-        return new OllamaTextGenerationProvider(restClient, properties.chatModel());
+        return new OllamaTextGenerationProvider(restClient, properties.chatModel(), properties.maxOutputTokens());
     }
 }

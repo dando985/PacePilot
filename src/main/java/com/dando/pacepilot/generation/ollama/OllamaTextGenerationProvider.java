@@ -13,18 +13,17 @@ public class OllamaTextGenerationProvider implements TextGenerationProvider {
 
     private final RestClient restClient;
     private final String model;
+    private final int maxOutputTokens;
 
-    public OllamaTextGenerationProvider(RestClient restClient, String model) {
+    public OllamaTextGenerationProvider(RestClient restClient, String model, int maxOutputTokens) {
         this.restClient = restClient;
         this.model = model;
+        this.maxOutputTokens = maxOutputTokens;
     }
 
     @Override
     public String generate(String systemMessage, String userMessage) {
         validateMessages(systemMessage, userMessage);
-
-        // limit number of tokens used by LLM
-        int TOKENS = 300;
 
         OllamaChatRequest request =
                 new OllamaChatRequest(
@@ -42,7 +41,7 @@ public class OllamaTextGenerationProvider implements TextGenerationProvider {
                         false,
                         Map.of(
                                 "num_predict",
-                                TOKENS
+                                maxOutputTokens
                         )
                 );
 
