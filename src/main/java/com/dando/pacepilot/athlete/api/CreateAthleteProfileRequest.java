@@ -36,7 +36,7 @@ public record CreateAthleteProfileRequest(
 )
 {
 
-    // Checks that athletes with running goals provide running distance and distance unit. Genral fitness athletes should leave these fields as null
+    // If either running-distance field is supplied, require both fields.
     @AssertTrue(
             message = """
                 Running distance and distance unit must \
