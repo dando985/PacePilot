@@ -1,5 +1,6 @@
 package com.dando.pacepilot.ollama;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -12,6 +13,7 @@ import java.net.URI;
 public record OllamaProperties(
         @NotNull URI baseUrl,
         @NotBlank String embeddingModel,
-        @NotBlank String chatModel
+        @NotBlank String chatModel,
+        @Min(1) int maxOutputTokens
 ) {
 }
