@@ -105,14 +105,4 @@ class TrainingKnowledgeServiceTest {
                         )
                 );
     }
-
-    @Test
-    void findsChunkById() {
-        assertThat(knowledgeService.findChunkById("running-chunk-1")).contains(runningChunk);
-    }
-
-    @Test
-    void returnsEmptyForUnknownChunkId() {
-        assertThat(knowledgeService.findChunkById("unknown-chunk")).isEmpty();
-    }
 }

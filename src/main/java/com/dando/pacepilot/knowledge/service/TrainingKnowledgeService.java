@@ -6,7 +6,6 @@ import com.dando.pacepilot.knowledge.loader.TrainingDocumentLoader;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TrainingKnowledgeService {
@@ -30,13 +29,5 @@ public class TrainingKnowledgeService {
 
     public List<TrainingChunk> getAllChunks() {
         return chunks;
-    }
-
-    public Optional<TrainingChunk> findChunkById(String chunkId) {
-        return chunks.stream()
-                .filter(chunk ->
-                        chunk.id().equals(chunkId)
-                )
-                .findFirst();
     }
 }
