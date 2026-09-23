@@ -1,6 +1,6 @@
 package com.dando.pacepilot;
 
-import com.dando.pacepilot.embedding.ollama.OllamaProperties;
+import com.dando.pacepilot.ollama.OllamaProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
