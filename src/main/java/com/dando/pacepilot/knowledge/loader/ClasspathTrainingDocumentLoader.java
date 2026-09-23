@@ -16,13 +16,12 @@ import java.util.Comparator;
 import java.util.List;
 
 @Component
-public class ClasspathTrainingDocumentLoader implements TrainingDocumentLoader {
+public class ClasspathTrainingDocumentLoader {
 
     private static final String RESOURCE_PATTERN = "classpath*:knowledge/*.md";
 
     private final ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver();
 
-    @Override
     public List<TrainingDocument> loadDocuments() {
         try {
             Resource[] resources = resourceResolver.getResources(RESOURCE_PATTERN);

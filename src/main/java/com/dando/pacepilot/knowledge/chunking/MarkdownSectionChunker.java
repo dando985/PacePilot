@@ -9,12 +9,11 @@ import java.util.List;
 import java.util.Objects;
 
 @Component
-public class MarkdownSectionChunker implements TrainingDocumentChunker {
+public class MarkdownSectionChunker {
 
     private static final String DOCUMENT_TITLE_PREFIX = "# ";
     private static final String SECTION_TITLE_PREFIX = "## ";
 
-    @Override
     public List<TrainingChunk> createChunks(TrainingDocument document) {
         Objects.requireNonNull(document, "Training document cannot be null");
 

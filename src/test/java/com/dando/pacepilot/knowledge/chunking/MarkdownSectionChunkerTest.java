@@ -3,7 +3,6 @@ package com.dando.pacepilot.knowledge.chunking;
 import com.dando.pacepilot.knowledge.domain.TrainingChunk;
 import com.dando.pacepilot.knowledge.domain.TrainingDocument;
 import com.dando.pacepilot.knowledge.loader.ClasspathTrainingDocumentLoader;
-import com.dando.pacepilot.knowledge.loader.TrainingDocumentLoader;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -12,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class MarkdownSectionChunkerTest {
 
-    private final TrainingDocumentChunker chunker = new MarkdownSectionChunker();
+    private final MarkdownSectionChunker chunker = new MarkdownSectionChunker();
 
     @Test
     void createsOneChunkForEachMarkdownSection() {
@@ -60,7 +59,7 @@ class MarkdownSectionChunkerTest {
 
     @Test
     void chunksTheRealKnowledgeDocuments() {
-        TrainingDocumentLoader loader = new ClasspathTrainingDocumentLoader();
+        ClasspathTrainingDocumentLoader loader = new ClasspathTrainingDocumentLoader();
 
         List<TrainingChunk> chunks = loader
                 .loadDocuments()
