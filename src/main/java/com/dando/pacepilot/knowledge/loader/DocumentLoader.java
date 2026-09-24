@@ -16,7 +16,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @Component
-public class ClasspathTrainingDocumentLoader {
+public class DocumentLoader {
 
     private static final String RESOURCE_PATTERN = "classpath*:knowledge/*.md";
 

@@ -2,7 +2,7 @@ package com.dando.pacepilot.knowledge.chunking;
 
 import com.dando.pacepilot.knowledge.domain.TrainingChunk;
 import com.dando.pacepilot.knowledge.domain.TrainingDocument;
-import com.dando.pacepilot.knowledge.loader.ClasspathTrainingDocumentLoader;
+import com.dando.pacepilot.knowledge.loader.DocumentLoader;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -59,7 +59,7 @@ class MarkdownSectionChunkerTest {
 
     @Test
     void chunksTheRealKnowledgeDocuments() {
-        ClasspathTrainingDocumentLoader loader = new ClasspathTrainingDocumentLoader();
+        DocumentLoader loader = new DocumentLoader();
 
         List<TrainingChunk> chunks = loader
                 .loadDocuments()
