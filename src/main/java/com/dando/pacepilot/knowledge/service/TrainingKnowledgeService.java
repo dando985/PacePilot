@@ -17,8 +17,7 @@ public class TrainingKnowledgeService {
         Loads every Markdown document.
         converts the document list into a stream.
         chunks every document.
-        combines all chunk streams into one stream.
-        stores the final list.
+        combines all chunks into a single list.
          */
         this.chunks = documentLoader
                 .loadDocuments()
