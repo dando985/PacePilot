@@ -1,7 +1,6 @@
 package com.dando.pacepilot.knowledge.exception;
 
-public class TrainingDocumentLoadingException
-        extends RuntimeException {
+public class TrainingDocumentLoadingException extends RuntimeException {
 
     public TrainingDocumentLoadingException(String message) {
         super(message);
