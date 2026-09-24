@@ -40,6 +40,7 @@ public class TrainingAssistantService {
             return new TrainingAnswer(question, NO_KNOWLEDGE_MESSAGE, List.of());
         }
 
+        // Establish model's rules
         String systemMessage = promptBuilder.buildSystemMessage();
 
         // Insert results from retrieval into a prompt
