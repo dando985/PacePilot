@@ -89,6 +89,7 @@ public class OllamaTextGenerationProvider implements TextGenerationProvider {
     ) {
     }
 
+    // roles and content as per defined by Ollama's chat format
     private record OllamaChatMessage(
             String role,
             String content
