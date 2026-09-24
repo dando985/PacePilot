@@ -1,7 +1,6 @@
 package com.dando.pacepilot.athlete.service;
 
 import com.dando.pacepilot.athlete.api.CreateAthleteProfileRequest;
-import com.dando.pacepilot.athlete.api.CreateFitnessGoalRequest;
 import com.dando.pacepilot.athlete.domain.AthleteProfile;
 import com.dando.pacepilot.athlete.domain.FitnessGoal;
 import com.dando.pacepilot.athlete.repository.AthleteProfileRepository;
