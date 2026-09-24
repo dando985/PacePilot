@@ -11,9 +11,6 @@ public class HealthController {
 
     @GetMapping("/health")
     public HealthResponse health() {
-        return new HealthResponse(
-                "UP",
-                "PacePilot"
-        );
+        return new HealthResponse("UP", "PacePilot");
     }
 }
