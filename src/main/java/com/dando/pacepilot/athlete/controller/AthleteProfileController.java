@@ -42,11 +42,6 @@ public class AthleteProfileController {
     public AthleteProfile getProfileById(@PathVariable UUID id) {
         return profileService
                 .findProfileById(id)
-                .orElseThrow(
-                        () -> new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "Athlete profile was not found"
-                        )
-                );
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Athlete profile was not found"));
     }
 }
