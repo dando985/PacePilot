@@ -6,13 +6,11 @@ import com.dando.pacepilot.generation.TextGenerationProvider;
 import com.dando.pacepilot.generation.ollama.OllamaTextGenerationProvider;
 import com.dando.pacepilot.ollama.OllamaProperties;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
 
 @Configuration
-@EnableConfigurationProperties(OllamaProperties.class)
 public class OllamaConfiguration {
 
     @Bean

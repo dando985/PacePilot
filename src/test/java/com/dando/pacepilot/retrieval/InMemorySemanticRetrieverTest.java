@@ -31,10 +31,13 @@ class InMemorySemanticRetrieverTest {
 
     @BeforeEach
     void setUp() {
+        RetrievalProperties properties = new RetrievalProperties(0.50);
+
         retriever = new InMemorySemanticRetriever(
                 embeddingProvider,
                 semanticIndexService,
-                new CosineSimilarityCalculator()
+                new CosineSimilarityCalculator(),
+                properties
         );
     }
 
