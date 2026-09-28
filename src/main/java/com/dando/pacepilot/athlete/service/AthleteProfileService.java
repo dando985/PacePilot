@@ -3,11 +3,11 @@ package com.dando.pacepilot.athlete.service;
 import com.dando.pacepilot.athlete.api.CreateAthleteProfileRequest;
 import com.dando.pacepilot.athlete.domain.AthleteProfile;
 import com.dando.pacepilot.athlete.domain.FitnessGoal;
+import com.dando.pacepilot.athlete.exception.AthleteProfileNotFoundException;
 import com.dando.pacepilot.athlete.repository.AthleteProfileRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -39,8 +39,15 @@ public class AthleteProfileService {
         return profileRepository.save(profile);
     }
 
-    public Optional<AthleteProfile> findProfileById(UUID id) {
-        return profileRepository.findById(id);
+    public AthleteProfile getProfileById(UUID id) {
+        return profileRepository
+                .findById(id)
+                .orElseThrow(
+                        () ->
+                                new AthleteProfileNotFoundException(
+                                        id
+                                )
+                );
     }
 
     public List<AthleteProfile> findAllProfiles() {
