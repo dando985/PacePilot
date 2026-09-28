@@ -11,6 +11,8 @@ import java.util.List;
 @Service
 public class InMemorySemanticRetriever implements SemanticRetriever {
 
+    private static final double MINIMUM_SIMILARITY = 0.5;
+
     private final EmbeddingProvider embeddingProvider;
     private final SemanticIndexService semanticIndexService;
     private final CosineSimilarityCalculator similarityCalculator;
@@ -38,6 +40,7 @@ public class InMemorySemanticRetriever implements SemanticRetriever {
         // calculate cosine similarity score for each document chunk and return list sorted from high to low with specified search limit
         return index.stream()
                 .map(embeddedChunk -> createSearchResult(embeddedChunk, queryEmbedding))
+                .filter(result -> result.similarity() >= MINIMUM_SIMILARITY)
                 .sorted(Comparator.comparingDouble(SemanticSearchResult::similarity).reversed())
                 .limit(limit)
                 .toList();
