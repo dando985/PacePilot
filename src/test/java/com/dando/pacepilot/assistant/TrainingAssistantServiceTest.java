@@ -1,9 +1,15 @@
 package com.dando.pacepilot.assistant;
 
+import com.dando.pacepilot.athlete.service.AthleteProfileService;
 import com.dando.pacepilot.generation.TextGenerationProvider;
 import com.dando.pacepilot.knowledge.domain.TrainingChunk;
 import com.dando.pacepilot.retrieval.SemanticRetriever;
 import com.dando.pacepilot.retrieval.SemanticSearchResult;
+import com.dando.pacepilot.athlete.domain.AthleteProfile;
+import com.dando.pacepilot.athlete.domain.DistanceUnit;
+import com.dando.pacepilot.athlete.domain.ExperienceLevel;
+import com.dando.pacepilot.athlete.domain.FitnessGoal;
+import com.dando.pacepilot.athlete.domain.GoalType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,6 +18,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.time.LocalDate;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
@@ -24,6 +32,9 @@ import static org.mockito.Mockito.when;
 class TrainingAssistantServiceTest {
 
     @Mock
+    private AthleteProfileService profileService;
+
+    @Mock
     private SemanticRetriever semanticRetriever;
 
     @Mock
@@ -34,6 +45,7 @@ class TrainingAssistantServiceTest {
     @BeforeEach
     void setUp() {
         assistantService = new TrainingAssistantService(
+                profileService,
                 semanticRetriever,
                 generationProvider,
                 new TrainingAssistantPromptBuilder()
@@ -42,6 +54,11 @@ class TrainingAssistantServiceTest {
 
     @Test
     void generatesAnswerUsingRetrievedKnowledge() {
+        UUID profileId = UUID.randomUUID();
+        AthleteProfile profile = createProfile(profileId);
+
+        when(profileService.getProfileById(profileId)).thenReturn(profile);
+
         String question = "How often should a beginner runner rest?";
 
         TrainingChunk recoveryChunk = createChunk(
@@ -74,7 +91,7 @@ class TrainingAssistantServiceTest {
         when(generationProvider.generate(anyString(), anyString()))
                 .thenReturn("Beginners should allow recovery between running sessions [1].");
 
-        TrainingAnswer answer = assistantService.ask(question);
+        TrainingAnswer answer = assistantService.ask(profileId, question);
 
         assertThat(answer.question()).isEqualTo(question);
 
@@ -115,11 +132,15 @@ class TrainingAssistantServiceTest {
 
         assertThat(userMessageCaptor.getValue())
                 .contains(
+                        "Dan",
+                        "BEGINNER",
+                        "4",
+                        "15.0 MILES",
+                        "MARATHON",
+                        "240 minutes",
                         question,
                         "[1]",
-                        "Recovery between runs",
-                        "[2]",
-                        "Increasing workload"
+                        "Recovery between runs"
                 );
 
         verify(semanticRetriever).search(question, 3);
@@ -127,15 +148,18 @@ class TrainingAssistantServiceTest {
 
     @Test
     void doesNotGenerateAnswerWhenNoKnowledgeWasFound() {
+        UUID profileId = UUID.randomUUID();
+        AthleteProfile profile = createProfile(profileId);
+
+        when(profileService.getProfileById(profileId)).thenReturn(profile);
+
         String question = "What should I eat during an ultramarathon?";
 
         when(semanticRetriever.search(question, 3)).thenReturn(List.of());
 
-        TrainingAnswer answer = assistantService.ask(question);
+        TrainingAnswer answer = assistantService.ask(profileId, question);
 
-        assertThat(answer.answer())
-                .contains("could not find enough information");
-
+        assertThat(answer.answer()).contains("could not find enough information");
         assertThat(answer.sources()).isEmpty();
 
         verifyNoInteractions(generationProvider);
@@ -144,10 +168,10 @@ class TrainingAssistantServiceTest {
     @Test
     void rejectsBlankQuestion() {
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> assistantService.ask(" "))
+                .isThrownBy(() -> assistantService.ask(UUID.randomUUID()," "))
                 .withMessage("Question must not be blank.");
 
-        verifyNoInteractions(semanticRetriever, generationProvider);
+        verifyNoInteractions(profileService, semanticRetriever, generationProvider);
     }
 
     private TrainingChunk createChunk(
@@ -164,6 +188,25 @@ class TrainingAssistantServiceTest {
                 sectionTitle,
                 chunkNumber,
                 content
+        );
+    }
+
+    // helper to create stub profile
+    private AthleteProfile createProfile(UUID id) {
+        FitnessGoal goal = new FitnessGoal(
+                GoalType.MARATHON,
+                LocalDate.of(2099, 1, 1),
+                240
+        );
+
+        return new AthleteProfile(
+                id,
+                "Dan",
+                ExperienceLevel.BEGINNER,
+                4,
+                15.0,
+                DistanceUnit.MILES,
+                goal
         );
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -30,6 +31,7 @@ class TrainingAssistantControllerTest {
 
     @Test
     void returnsGeneratedAnswerAndSources() throws Exception {
+        UUID profileId = UUID.randomUUID();
 
         String question = "How often should a beginner runner rest?";
 
@@ -53,7 +55,7 @@ class TrainingAssistantControllerTest {
                         List.of(source)
                 );
 
-        when(assistantService.ask(question)).thenReturn(trainingAnswer);
+        when(assistantService.ask(profileId, question)).thenReturn(trainingAnswer);
 
         mockMvc.perform(
                         post("/api/assistant/ask")
@@ -62,9 +64,10 @@ class TrainingAssistantControllerTest {
                                 )
                                 .content("""
                                         {
+                                          "athleteProfileId": "%s",
                                           "question": "How often should a beginner runner rest?"
                                         }
-                                        """)
+                                        """.formatted(profileId))
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.question").value(question))
@@ -76,11 +79,13 @@ class TrainingAssistantControllerTest {
                 .andExpect(jsonPath("$.sources[0].sectionTitle").value("Recovery between runs"))
                 .andExpect(jsonPath("$.sources[0].similarity").value(0.91));
 
-        verify(assistantService).ask(question);
+        verify(assistantService).ask(profileId, question);
     }
 
     @Test
     void rejectsBlankQuestion() throws Exception {
+        UUID profileId = UUID.randomUUID();
+
         mockMvc.perform(
                         post("/api/assistant/ask")
                                 .contentType(
@@ -88,9 +93,10 @@ class TrainingAssistantControllerTest {
                                 )
                                 .content("""
                                         {
+                                          "athleteProfileId": "%s",
                                           "question": " "
                                         }
-                                        """)
+                                        """.formatted(profileId))
                 )
                 .andExpect(status().isBadRequest());
 
@@ -99,14 +105,15 @@ class TrainingAssistantControllerTest {
 
     @Test
     void rejectsQuestionLongerThanMaximum() throws Exception {
-
+        UUID profileId = UUID.randomUUID();
         String longQuestion = "a".repeat(501);
 
         String requestBody = """
                 {
+                  "athleteProfileId": "%s",
                   "question": "%s"
                 }
-                """.formatted(longQuestion);
+                """.formatted(profileId, longQuestion);
 
         mockMvc.perform(
                         post("/api/assistant/ask")
@@ -114,6 +121,25 @@ class TrainingAssistantControllerTest {
                                         MediaType.APPLICATION_JSON
                                 )
                                 .content(requestBody)
+                )
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(assistantService);
+    }
+
+    @Test
+    void rejectsMissingAthleteProfileId() throws Exception {
+
+        mockMvc.perform(
+                        post("/api/assistant/ask")
+                                .contentType(
+                                        MediaType.APPLICATION_JSON
+                                )
+                                .content("""
+                                    {
+                                      "question": "How often should I run?"
+                                    }
+                                    """)
                 )
                 .andExpect(status().isBadRequest());
 
