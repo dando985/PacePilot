@@ -105,6 +105,45 @@ class InMemorySemanticRetrieverTest {
                 .withMessage("Search result limit must be greater than zero.");
     }
 
+    @Test
+    void excludesChunksBelowMinimumSimilarity() {
+        String query = "How should a beginner recover?";
+
+        double[] queryEmbedding = {1.0, 0.0};
+
+        TrainingChunk relevantChunk = createChunk(
+                "running-chunk-1",
+                "Recovery",
+                "Beginners should recover between runs.",
+                1
+        );
+
+        TrainingChunk unrelatedChunk = createChunk(
+                "fitness-chunk-1",
+                "Unrelated section",
+                "Unrelated content.",
+                2
+        );
+
+        List<EmbeddedTrainingChunk> index = List.of(
+                new EmbeddedTrainingChunk(
+                        relevantChunk,
+                        new double[]{0.6, 0.8}
+                ),
+                new EmbeddedTrainingChunk(
+                        unrelatedChunk,
+                        new double[]{0.0, 1.0}
+                )
+        );
+
+        when(embeddingProvider.createEmbedding(query)).thenReturn(queryEmbedding);
+        when(semanticIndexService.getOrCreateIndex()).thenReturn(index);
+
+        List<SemanticSearchResult> results = retriever.search(query, 3);
+
+        assertThat(results).extracting(SemanticSearchResult::chunk).containsExactly(relevantChunk);
+    }
+
     // helper to create sample chunk
     private TrainingChunk createChunk(
             String id,
