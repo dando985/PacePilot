@@ -7,6 +7,7 @@ import com.dando.pacepilot.athlete.domain.ExperienceLevel;
 import com.dando.pacepilot.athlete.domain.FitnessGoal;
 import com.dando.pacepilot.athlete.domain.GoalType;
 import com.dando.pacepilot.athlete.service.AthleteProfileService;
+import com.dando.pacepilot.athlete.exception.AthleteProfileNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -16,7 +17,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -86,27 +86,29 @@ class AthleteProfileControllerTest {
         UUID id = UUID.randomUUID();
         AthleteProfile profile = createProfile(id, "Dan");
 
-        when(profileService.findProfileById(id)).thenReturn(Optional.of(profile));
+        when(profileService.getProfileById(id)).thenReturn(profile);
 
         mockMvc.perform(get("/api/athletes/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id.toString()))
                 .andExpect(jsonPath("$.displayName").value("Dan"));
 
-        verify(profileService).findProfileById(id);
+        verify(profileService).getProfileById(id);
     }
 
     @Test
     void returnsNotFoundForUnknownProfile() throws Exception {
+
         UUID unknownId = UUID.randomUUID();
 
-        when(profileService.findProfileById(unknownId)).thenReturn(Optional.empty());
+        when(profileService.getProfileById(unknownId)).thenThrow(new AthleteProfileNotFoundException(unknownId));
 
         mockMvc.perform(
-                        get("/api/athletes/{id}", unknownId))
+                        get("/api/athletes/{id}", unknownId)
+                )
                 .andExpect(status().isNotFound());
 
-        verify(profileService).findProfileById(unknownId);
+        verify(profileService).getProfileById(unknownId);
     }
 
     // Helper method to create sample athlete profile with specific UUID and name
