@@ -42,12 +42,7 @@ public class AthleteProfileService {
     public AthleteProfile getProfileById(UUID id) {
         return profileRepository
                 .findById(id)
-                .orElseThrow(
-                        () ->
-                                new AthleteProfileNotFoundException(
-                                        id
-                                )
-                );
+                .orElseThrow(() -> new AthleteProfileNotFoundException(id));
     }
 
     public List<AthleteProfile> findAllProfiles() {
