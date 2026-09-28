@@ -39,7 +39,7 @@ public class TrainingAssistantPromptBuilder {
                 """;
     }
 
-    // format user's questions and sources
+    // build prompt using user's question, athlete profile, and sources
     public String buildUserMessage(String question, AthleteProfile profile, List<SemanticSearchResult> results) {
         StringBuilder context = new StringBuilder();
 
