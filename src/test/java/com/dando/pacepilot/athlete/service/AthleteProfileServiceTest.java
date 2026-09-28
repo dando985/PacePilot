@@ -7,6 +7,7 @@ import com.dando.pacepilot.athlete.domain.DistanceUnit;
 import com.dando.pacepilot.athlete.domain.ExperienceLevel;
 import com.dando.pacepilot.athlete.domain.FitnessGoal;
 import com.dando.pacepilot.athlete.domain.GoalType;
+import com.dando.pacepilot.athlete.exception.AthleteProfileNotFoundException;
 import com.dando.pacepilot.athlete.repository.AthleteProfileRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,9 +17,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -70,12 +73,14 @@ class AthleteProfileServiceTest {
     }
 
     @Test
-    void findsProfileById() {
+    void getsProfileById() {
         AthleteProfile expectedProfile = createProfile(UUID.randomUUID(), "Dan");
 
-        when(profileRepository.findById(expectedProfile.id())).thenReturn(java.util.Optional.of(expectedProfile));
+        when(profileRepository.findById(expectedProfile.id())).thenReturn(Optional.of(expectedProfile));
 
-        assertThat(profileService.findProfileById(expectedProfile.id())).contains(expectedProfile);
+        AthleteProfile result = profileService.getProfileById(expectedProfile.id());
+
+        assertThat(result).isSameAs(expectedProfile);
 
         verify(profileRepository).findById(expectedProfile.id());
     }
@@ -90,6 +95,19 @@ class AthleteProfileServiceTest {
         assertThat(profileService.findAllProfiles()).containsExactly(firstProfile, secondProfile);
 
         verify(profileRepository).findAll();
+    }
+
+    @Test
+    void throwsExceptionForUnknownProfile() {
+        UUID unknownId = UUID.randomUUID();
+
+        when(profileRepository.findById(unknownId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> profileService.getProfileById(unknownId))
+                .isInstanceOf(AthleteProfileNotFoundException.class)
+                .hasMessageContaining(unknownId.toString());
+
+        verify(profileRepository).findById(unknownId);
     }
 
     // Helper method to create sample athlete profile

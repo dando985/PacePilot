@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -40,8 +39,6 @@ public class AthleteProfileController {
 
     @GetMapping("/{id}")
     public AthleteProfile getProfileById(@PathVariable UUID id) {
-        return profileService
-                .findProfileById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Athlete profile was not found"));
+        return profileService.getProfileById(id);
     }
 }
