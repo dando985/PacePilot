@@ -106,7 +106,7 @@ public class TrainingAssistantPromptBuilder {
         );
     }
 
-    // helper to prevent prompt from containing null for weekly distance
+    // helper to prevent prompt from containing null for weekly distance and formatting valid inputs
     private String formatWeeklyDistance(AthleteProfile profile) {
         if (profile.currentWeeklyRunningDistance() == null || profile.runningDistanceUnit() == null) {
             return "Not provided";
@@ -115,7 +115,7 @@ public class TrainingAssistantPromptBuilder {
         return "%s %s".formatted(profile.currentWeeklyRunningDistance(), profile.runningDistanceUnit());
     }
 
-    // helper to prevent prompt from containing null for target time
+    // helper to prevent prompt from containing null for target time and formatting valid inputs
     private String formatTargetTime(AthleteProfile profile) {
         Integer targetTime = profile.goal().targetTimeMinutes();
 
