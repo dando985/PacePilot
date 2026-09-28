@@ -20,6 +20,6 @@ public class TrainingAssistantController {
 
     @PostMapping("/ask")
     public TrainingAnswer ask(@Valid @RequestBody AskTrainingAssistantRequest request) {
-        return assistantService.ask(request.question());
+        return assistantService.ask(request.athleteProfileId(), request.question());
     }
 }
