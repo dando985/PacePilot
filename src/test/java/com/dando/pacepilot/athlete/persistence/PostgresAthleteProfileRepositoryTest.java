@@ -44,10 +44,10 @@ class PostgresAthleteProfileRepositoryTest {
         when(jpaRepository.save(any(AthleteProfileEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        AthleteProfile savedProfile = repository.save(profile);
-
         // create a captor to capture local AthleteProfileEntity object from the save call above
         ArgumentCaptor<AthleteProfileEntity> entityCaptor = ArgumentCaptor.forClass(AthleteProfileEntity.class);
+
+        AthleteProfile savedProfile = repository.save(profile);
 
         // retrieve the AthleteProfileEntity object
         verify(jpaRepository).save(entityCaptor.capture());
