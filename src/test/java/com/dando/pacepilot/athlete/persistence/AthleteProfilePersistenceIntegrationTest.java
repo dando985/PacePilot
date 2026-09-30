@@ -6,33 +6,23 @@ import com.dando.pacepilot.athlete.domain.ExperienceLevel;
 import com.dando.pacepilot.athlete.domain.FitnessGoal;
 import com.dando.pacepilot.athlete.domain.GoalType;
 import com.dando.pacepilot.athlete.repository.AthleteProfileRepository;
+import com.dando.pacepilot.TestcontainersConfiguration;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.postgresql.PostgreSQLContainer;
+import org.springframework.context.annotation.Import;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Testcontainers
 @SpringBootTest
+@Import(TestcontainersConfiguration.class)
 @Transactional
 class AthleteProfilePersistenceIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static final PostgreSQLContainer POSTGRES =
-            new PostgreSQLContainer("postgres:18.6-alpine")
-                    .withDatabaseName("pacepilot_test")
-                    .withUsername("test")
-                    .withPassword("test");
 
     @Autowired
     private AthleteProfileRepository repository;
