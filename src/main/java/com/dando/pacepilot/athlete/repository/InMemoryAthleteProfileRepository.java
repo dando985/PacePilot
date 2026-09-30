@@ -1,7 +1,6 @@
 package com.dando.pacepilot.athlete.repository;
 
 import com.dando.pacepilot.athlete.domain.AthleteProfile;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Map;
@@ -9,7 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Repository
 public class InMemoryAthleteProfileRepository implements AthleteProfileRepository {
 
     private final Map<UUID, AthleteProfile> profiles = new ConcurrentHashMap<>();
