@@ -1,6 +1,5 @@
-package com.dando.pacepilot.athlete.controller;
+package com.dando.pacepilot.athlete.api;
 
-import com.dando.pacepilot.athlete.api.CreateAthleteProfileRequest;
 import com.dando.pacepilot.athlete.domain.AthleteProfile;
 import com.dando.pacepilot.athlete.service.AthleteProfileService;
 import jakarta.validation.Valid;
