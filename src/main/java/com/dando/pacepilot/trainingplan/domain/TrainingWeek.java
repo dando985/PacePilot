@@ -22,6 +22,20 @@ public record TrainingWeek(
             throw new IllegalArgumentException("A training week must contain workouts.");
         }
 
+        LocalDate weekEndDate = startDate.plusDays(6);
+
+        for (PlannedWorkout workout : workouts) {
+            if (workout == null) {
+                throw new IllegalArgumentException("A workout cannot be null.");
+            }
+
+            LocalDate date = workout.scheduledDate();
+
+            if (date.isBefore(startDate) || date.isAfter(weekEndDate)) {
+                throw new IllegalArgumentException("Workout date must fall within its training week.");
+            }
+        }
+
         workouts = List.copyOf(workouts);
     }
 
