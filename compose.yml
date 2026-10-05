@@ -14,7 +14,7 @@ services:
       - pacepilot-postgres-data:/var/lib/postgresql
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pacepilot -d pacepilot"]
+      test: ["CMD-SHELL", "pg_isready -U user -d pacepilot"]
       interval: 5s
       timeout: 5s
       retries: 10
