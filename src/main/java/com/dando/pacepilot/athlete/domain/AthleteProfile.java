@@ -1,5 +1,7 @@
 package com.dando.pacepilot.athlete.domain;
 
+import com.dando.pacepilot.shared.domain.DistanceUnit;
+
 import java.util.UUID;
 
 public record AthleteProfile(

@@ -1,7 +1,7 @@
 package com.dando.pacepilot.athlete.repository;
 
 import com.dando.pacepilot.athlete.domain.AthleteProfile;
-import com.dando.pacepilot.athlete.domain.DistanceUnit;
+import com.dando.pacepilot.shared.domain.DistanceUnit;
 import com.dando.pacepilot.athlete.domain.ExperienceLevel;
 import com.dando.pacepilot.athlete.domain.FitnessGoal;
 import com.dando.pacepilot.athlete.domain.GoalType;

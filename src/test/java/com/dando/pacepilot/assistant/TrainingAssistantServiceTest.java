@@ -6,7 +6,7 @@ import com.dando.pacepilot.knowledge.domain.TrainingChunk;
 import com.dando.pacepilot.retrieval.SemanticRetriever;
 import com.dando.pacepilot.retrieval.SemanticSearchResult;
 import com.dando.pacepilot.athlete.domain.AthleteProfile;
-import com.dando.pacepilot.athlete.domain.DistanceUnit;
+import com.dando.pacepilot.shared.domain.DistanceUnit;
 import com.dando.pacepilot.athlete.domain.ExperienceLevel;
 import com.dando.pacepilot.athlete.domain.FitnessGoal;
 import com.dando.pacepilot.athlete.domain.GoalType;

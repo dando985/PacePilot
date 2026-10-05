@@ -1,6 +1,6 @@
 package com.dando.pacepilot.trainingplan.domain;
 
-import com.dando.pacepilot.athlete.domain.DistanceUnit;
+import com.dando.pacepilot.shared.domain.DistanceUnit;
 
 import java.time.LocalDate;
 import java.util.UUID;

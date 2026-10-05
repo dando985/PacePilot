@@ -1,6 +1,6 @@
 package com.dando.pacepilot.athlete.api;
 
-import com.dando.pacepilot.athlete.domain.DistanceUnit;
+import com.dando.pacepilot.shared.domain.DistanceUnit;
 import com.dando.pacepilot.athlete.domain.ExperienceLevel;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
