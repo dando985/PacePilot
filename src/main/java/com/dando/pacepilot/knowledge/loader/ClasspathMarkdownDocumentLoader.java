@@ -16,7 +16,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @Component
-public class DocumentLoader {
+public class ClasspathMarkdownDocumentLoader {
 
     private static final String RESOURCE_PATTERN = "classpath*:knowledge/*.md";
 

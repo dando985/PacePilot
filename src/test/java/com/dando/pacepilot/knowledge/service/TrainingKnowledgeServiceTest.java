@@ -1,7 +1,7 @@
 package com.dando.pacepilot.knowledge.service;
 
 import com.dando.pacepilot.knowledge.chunking.MarkdownSectionChunker;
-import com.dando.pacepilot.knowledge.loader.DocumentLoader;
+import com.dando.pacepilot.knowledge.loader.ClasspathMarkdownDocumentLoader;
 import com.dando.pacepilot.knowledge.domain.TrainingChunk;
 import com.dando.pacepilot.knowledge.domain.TrainingDocument;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 class TrainingKnowledgeServiceTest {
 
     @Mock
-    private DocumentLoader documentLoader;
+    private ClasspathMarkdownDocumentLoader documentLoader;
 
     @Mock
     private MarkdownSectionChunker documentChunker;

@@ -2,7 +2,7 @@ package com.dando.pacepilot.knowledge.service;
 
 import com.dando.pacepilot.knowledge.domain.TrainingChunk;
 import com.dando.pacepilot.knowledge.chunking.MarkdownSectionChunker;
-import com.dando.pacepilot.knowledge.loader.DocumentLoader;
+import com.dando.pacepilot.knowledge.loader.ClasspathMarkdownDocumentLoader;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,7 +12,7 @@ public class TrainingKnowledgeService {
 
     private final List<TrainingChunk> chunks;
 
-    public TrainingKnowledgeService(DocumentLoader documentLoader, MarkdownSectionChunker documentChunker) {
+    public TrainingKnowledgeService(ClasspathMarkdownDocumentLoader documentLoader, MarkdownSectionChunker documentChunker) {
         /*
         Loads every Markdown document.
         converts the document list into a stream.

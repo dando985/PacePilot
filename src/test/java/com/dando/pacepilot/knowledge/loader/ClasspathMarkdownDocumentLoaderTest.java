@@ -7,9 +7,9 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class DocumentLoaderTest {
+class ClasspathMarkdownDocumentLoaderTest {
 
-    private final DocumentLoader documentLoader = new DocumentLoader();
+    private final ClasspathMarkdownDocumentLoader documentLoader = new ClasspathMarkdownDocumentLoader();
 
     @Test
     void loadsAllMarkdownDocuments() {
