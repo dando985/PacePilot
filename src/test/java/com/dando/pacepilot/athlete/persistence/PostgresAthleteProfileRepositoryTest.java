@@ -49,7 +49,7 @@ class PostgresAthleteProfileRepositoryTest {
 
         AthleteProfile savedProfile = repository.save(profile);
 
-        // retrieve the AthleteProfileEntity object from the stack trace
+        // retrieve those recorded arguments from the save method call and verify that the save method was called with the correct arguments
         verify(jpaRepository).save(entityCaptor.capture());
 
         // extract the AthleteProfileEntity object from the captor
