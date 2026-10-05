@@ -33,8 +33,8 @@ public record PlannedWorkout(
             throw new IllegalArgumentException("Workout title is required.");
         }
 
-        if (targetDistance != null && targetDistance <= 0) {
-            throw new IllegalArgumentException("Target distance must be positive.");
+        if (targetDistance != null && (!Double.isFinite(targetDistance) || targetDistance <= 0)) {
+            throw new IllegalArgumentException("Target distance must be a finite positive number.");
         }
 
         if (targetDurationMinutes != null && targetDurationMinutes <= 0) {
