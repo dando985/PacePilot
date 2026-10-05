@@ -210,6 +210,7 @@ class TrainingPlanModelTest {
         );
     }
 
+    // helper method to create a TrainingWeek with a single workout on the start date
     private TrainingWeek week(int number, LocalDate startDate) {
         return new TrainingWeek(
                 number,
@@ -218,10 +219,8 @@ class TrainingPlanModelTest {
         );
     }
 
-    private TrainingPlan plan(
-            LocalDate endDate,
-            List<TrainingWeek> weeks
-    ) {
+    // helper method to create a TrainingPlan with the specified end date and weeks
+    private TrainingPlan plan(LocalDate endDate, List<TrainingWeek> weeks) {
         return new TrainingPlan(
                 UUID.randomUUID(),
                 UUID.randomUUID(),
