@@ -4,6 +4,13 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -26,6 +33,14 @@ public class TrainingPlanEntity {
 
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
+
+    @OneToMany(
+            mappedBy = "plan",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @OrderBy("id.weekNumber ASC")
+    private List<TrainingWeekEntity> weeks = new ArrayList<>();
 
     protected TrainingPlanEntity() {
     }
@@ -62,5 +77,17 @@ public class TrainingPlanEntity {
 
     public LocalDate getEndDate() {
         return endDate;
+    }
+
+    public List<TrainingWeekEntity> getWeeks() {
+        return Collections.unmodifiableList(weeks);
+    }
+
+    public void addWeek(TrainingWeekEntity week) {
+        if (week == null || week.getPlan() != this) {
+            throw new IllegalArgumentException("Week must reference this training plan.");
+        }
+
+        weeks.add(week);
     }
 }
