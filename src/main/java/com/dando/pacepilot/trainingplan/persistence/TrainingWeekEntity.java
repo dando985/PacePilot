@@ -8,6 +8,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import java.time.LocalDate;
 
@@ -25,6 +32,14 @@ public class TrainingWeekEntity {
 
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
+
+    @OneToMany(
+            mappedBy = "week",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @OrderBy("positionInWeek ASC")
+    private List<PlannedWorkoutEntity> workouts = new ArrayList<>();
 
     protected TrainingWeekEntity() {
     }
@@ -49,5 +64,17 @@ public class TrainingWeekEntity {
 
     public LocalDate getStartDate() {
         return startDate;
+    }
+
+    public List<PlannedWorkoutEntity> getWorkouts() {
+        return Collections.unmodifiableList(workouts);
+    }
+
+    public void addWorkout(PlannedWorkoutEntity workout) {
+        if (workout == null || workout.getWeek() != this) {
+            throw new IllegalArgumentException("Workout must reference this training week.");
+        }
+
+        workouts.add(workout);
     }
 }
