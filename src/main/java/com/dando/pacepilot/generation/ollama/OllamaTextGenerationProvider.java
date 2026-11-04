@@ -81,6 +81,7 @@ public class OllamaTextGenerationProvider implements TextGenerationProvider {
         }
     }
 
+    // helper classes to represent Ollama's API chat request and response formats
     private record OllamaChatRequest(
             String model,
             List<OllamaChatMessage> messages,
