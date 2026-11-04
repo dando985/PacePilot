@@ -97,6 +97,7 @@ public class OllamaTextGenerationProvider implements TextGenerationProvider {
     ) {
     }
 
+    // only need to extract the message content, but model and done values are also returned by Ollama's API
     private record OllamaChatResponse(
             String model,
             OllamaChatMessage message,
