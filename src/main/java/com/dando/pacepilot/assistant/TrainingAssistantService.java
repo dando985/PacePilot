@@ -36,10 +36,11 @@ public class TrainingAssistantService {
         this.promptBuilder = promptBuilder;
     }
 
-    public TrainingAnswer ask(UUID athletePofileID, String question) {
-        validateQuestion(athletePofileID, question);
+    public TrainingAnswer ask(UUID athleteProfileID, String question) {
+        validateQuestion(athleteProfileID, question);
 
-        AthleteProfile profile = profileService.getProfileById(athletePofileID);
+        // Load athlete profile
+        AthleteProfile profile = profileService.getProfileById(athleteProfileID);
 
         // Perform semantic retrieval
         List<SemanticSearchResult> results = semanticRetriever.search(question, RETRIEVAL_LIMIT);
