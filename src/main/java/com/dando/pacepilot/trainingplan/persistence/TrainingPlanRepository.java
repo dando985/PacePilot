@@ -1,4 +1,4 @@
-package com.dando.pacepilot.trainingplan.repository;
+package com.dando.pacepilot.trainingplan.persistence;
 
 import com.dando.pacepilot.trainingplan.domain.TrainingPlan;
 
