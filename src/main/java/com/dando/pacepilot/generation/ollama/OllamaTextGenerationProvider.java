@@ -5,6 +5,8 @@ import com.dando.pacepilot.generation.TextGenerationProvider;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 import java.util.Map;
@@ -53,12 +55,17 @@ public class OllamaTextGenerationProvider implements TextGenerationProvider {
             throw new TextGenerationException("Unable to generate text using Ollama.", exception);
         }
 
-        if (response == null
-                || response.message() == null
-                || response.message().content() == null
-                || response.message().content().isBlank()) {
+        if (response == null) {
+            throw new TextGenerationException("Ollama returned no response.");
+        }
 
-            throw new TextGenerationException("Ollama returned no generated text.");
+        if (!response.done() || !"stop".equals(response.doneReason())) {
+            throw new TextGenerationException("Ollama did not complete generation normally. "
+                    + "Stop reason: " + response.doneReason());
+        }
+
+        if (response.message() == null || response.message().content() == null || response.message().content().isBlank()) {
+            throw new TextGenerationException("Ollama returned no generated content.");
         }
 
         return response.message().content().trim();
@@ -84,17 +91,20 @@ public class OllamaTextGenerationProvider implements TextGenerationProvider {
     }
 
     // roles and content as per defined by Ollama's chat format
+    @JsonIgnoreProperties(ignoreUnknown = true)
     private record OllamaChatMessage(
             String role,
             String content
     ) {
     }
 
-    // only need to extract the message content, but model and done values are also returned by Ollama's API
+    // only need to extract the message content, but model, done, and doneReason values are also returned by Ollama's API
+    @JsonIgnoreProperties(ignoreUnknown = true)
     private record OllamaChatResponse(
             String model,
             OllamaChatMessage message,
-            boolean done
+            boolean done,
+            @JsonProperty("done_reason") String doneReason
     ) {
     }
 }
