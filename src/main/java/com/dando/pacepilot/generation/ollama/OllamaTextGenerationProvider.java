@@ -29,19 +29,12 @@ public class OllamaTextGenerationProvider implements TextGenerationProvider {
                 new OllamaChatRequest(
                         model,
                         List.of(
-                                new OllamaChatMessage(
-                                        "system",
-                                        systemMessage
-                                ),
-                                new OllamaChatMessage(
-                                        "user",
-                                        userMessage
-                                )
+                                new OllamaChatMessage("system", systemMessage),
+                                new OllamaChatMessage("user", userMessage)
                         ),
                         false,
                         Map.of(
-                                "num_predict",
-                                maxOutputTokens
+                                "num_predict", maxOutputTokens
                         )
                 );
 
