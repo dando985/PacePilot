@@ -104,6 +104,7 @@ public class OllamaStructuredGenerationProvider implements StructuredGenerationP
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     private record OllamaChatResponse(
+            String model,
             OllamaChatMessage message,
             boolean done,
             @JsonProperty("done_reason") String doneReason
