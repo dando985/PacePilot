@@ -5,6 +5,10 @@ import com.dando.pacepilot.embedding.ollama.OllamaEmbeddingProvider;
 import com.dando.pacepilot.generation.TextGenerationProvider;
 import com.dando.pacepilot.generation.ollama.OllamaTextGenerationProvider;
 import com.dando.pacepilot.ollama.OllamaProperties;
+import com.dando.pacepilot.generation.StructuredGenerationProperties;
+import com.dando.pacepilot.generation.StructuredGenerationProvider;
+import com.dando.pacepilot.generation.ollama.OllamaStructuredGenerationProvider;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,5 +30,10 @@ public class OllamaConfiguration {
     @Bean
     public TextGenerationProvider textGenerationProvider(@Qualifier("ollamaRestClient") RestClient restClient, OllamaProperties properties) {
         return new OllamaTextGenerationProvider(restClient, properties.chatModel(), properties.maxOutputTokens());
+    }
+
+    @Bean
+    public StructuredGenerationProvider structuredGenerationProvider(@Qualifier("ollamaRestClient") RestClient restClient, OllamaProperties properties, StructuredGenerationProperties structuredProperties) {
+        return new OllamaStructuredGenerationProvider(restClient, properties.chatModel(), structuredProperties.maxOutputTokens());
     }
 }
