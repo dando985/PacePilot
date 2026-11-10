@@ -106,6 +106,8 @@ public class TrainingPlanGenerationService {
     // Private helper method to validate the generated training plan schedule against the athlete's available training days per week and ensure that workouts are ordered correctly.
     private void validateGeneratedSchedule(CreateTrainingPlanRequest plan, int availableDays) {
         for (CreateTrainingWeekRequest week : plan.weeks()) {
+
+            // Count the number of distinct training days (non-REST workouts) in the week and ensure it does not exceed the athlete's available training days per week.
             long trainingDays = week.workouts().stream()
                     .filter(workout -> workout.type() != WorkoutType.REST)
                     .map(CreatePlannedWorkoutRequest::scheduledDate)
