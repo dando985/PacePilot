@@ -1,7 +1,10 @@
 package com.dando.pacepilot.trainingplan.api;
 
+import com.dando.pacepilot.embedding.EmbeddingException;
+import com.dando.pacepilot.generation.TextGenerationException;
 import com.dando.pacepilot.trainingplan.domain.TrainingPlan;
 import com.dando.pacepilot.trainingplan.exception.InvalidTrainingPlanException;
+import com.dando.pacepilot.trainingplan.generation.TrainingPlanGenerationService;
 import com.dando.pacepilot.trainingplan.service.TrainingPlanService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -22,14 +25,24 @@ import java.util.UUID;
 public class TrainingPlanController {
 
     private final TrainingPlanService planService;
+    private final TrainingPlanGenerationService generationService;
 
-    public TrainingPlanController(TrainingPlanService planService) {
+    public TrainingPlanController(TrainingPlanService planService, TrainingPlanGenerationService generationService) {
         this.planService = planService;
+        this.generationService = generationService;
     }
 
     @PostMapping("/api/athletes/{athleteId}/training-plans")
     public ResponseEntity<TrainingPlan> createPlan(@PathVariable UUID athleteId, @Valid @RequestBody CreateTrainingPlanRequest request) {
         TrainingPlan plan = planService.createPlan(athleteId, request);
+        URI location = URI.create("/api/training-plans/" + plan.id());
+
+        return ResponseEntity.created(location).body(plan);
+    }
+
+    @PostMapping("/api/athletes/{athleteId}/training-plans/generate")
+    public ResponseEntity<TrainingPlan> generatePlan(@PathVariable UUID athleteId, @Valid @RequestBody GenerateTrainingPlanRequest request) {
+        TrainingPlan plan = generationService.generatePlan(athleteId, request);
         URI location = URI.create("/api/training-plans/" + plan.id());
 
         return ResponseEntity.created(location).body(plan);
@@ -48,5 +61,10 @@ public class TrainingPlanController {
     @ExceptionHandler(InvalidTrainingPlanException.class)
     public ProblemDetail handleInvalidPlan(InvalidTrainingPlanException exception) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
+    @ExceptionHandler({TextGenerationException.class, EmbeddingException.class})
+    public ProblemDetail handleGenerationFailure(RuntimeException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_GATEWAY, exception.getMessage());
     }
 }
