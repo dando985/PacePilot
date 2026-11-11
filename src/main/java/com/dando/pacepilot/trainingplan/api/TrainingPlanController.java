@@ -32,6 +32,7 @@ public class TrainingPlanController {
         this.generationService = generationService;
     }
 
+    // Creates a new training plan for the specified athlete using data in the request body
     @PostMapping("/api/athletes/{athleteId}/training-plans")
     public ResponseEntity<TrainingPlan> createPlan(@PathVariable UUID athleteId, @Valid @RequestBody CreateTrainingPlanRequest request) {
         TrainingPlan plan = planService.createPlan(athleteId, request);
@@ -40,6 +41,7 @@ public class TrainingPlanController {
         return ResponseEntity.created(location).body(plan);
     }
 
+    // Generates a new training plan for the specified athlete using data from LLM
     @PostMapping("/api/athletes/{athleteId}/training-plans/generate")
     public ResponseEntity<TrainingPlan> generatePlan(@PathVariable UUID athleteId, @Valid @RequestBody GenerateTrainingPlanRequest request) {
         TrainingPlan plan = generationService.generatePlan(athleteId, request);
