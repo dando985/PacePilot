@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Positive;
 
 import java.time.LocalDate;
 
+// Request object for creating a new workout log
+// Associated athlete ID is derived from the training plan ID and workout ID, so it is not included in this request.
 public record CreateWorkoutLogRequest(
         @NotNull @PastOrPresent LocalDate completedDate,
         @Positive Double actualDistance,
