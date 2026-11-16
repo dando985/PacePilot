@@ -3,9 +3,7 @@
 
 const API_BASE_URL = '/api';
 
-type ApiRequestOptions = Omit<RequestInit, 'body'> & {
-    body?: unknown;
-};
+type ApiRequestOptions = Omit<RequestInit, 'body'> & { body?: unknown; };
 
 export class ApiError extends Error {
     readonly status: number;
@@ -17,10 +15,7 @@ export class ApiError extends Error {
     }
 }
 
-export async function apiRequest<T>(
-    path: string,
-    options: ApiRequestOptions = {},
-): Promise<T> {
+export async function apiRequest<T>(path: string, options: ApiRequestOptions = {},): Promise<T> {
     const { body, headers: providedHeaders, ...requestOptions } = options;
     const headers = new Headers(providedHeaders);
 
@@ -50,12 +45,15 @@ async function readErrorMessage(response: Response): Promise<string> {
     const fallback = `Request failed with status ${response.status}.`;
 
     try {
+        // Attempt to parse the response body as JSON.
         const data: unknown = await response.json();
 
+        // Ensure the response data is an object before attempting to access its properties.
         if (!isRecord(data)) {
             return fallback;
         }
 
+        // Check for common error fields in the response data and return the first non-empty string found.
         for (const field of ['detail', 'message', 'title', 'error']) {
             const value = data[field];
 
@@ -64,6 +62,7 @@ async function readErrorMessage(response: Response): Promise<string> {
             }
         }
 
+        // If no specific error message is found, return the fallback message.
         return fallback;
     } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
@@ -74,6 +73,7 @@ async function readErrorMessage(response: Response): Promise<string> {
     }
 }
 
+// Type guard to check if a value is a record (object) with string keys and unknown values.
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
