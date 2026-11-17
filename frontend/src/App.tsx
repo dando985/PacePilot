@@ -1,122 +1,94 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react';
 
-function App() {
-  const [count, setCount] = useState(0)
+import { getAthleteProfiles } from './api/athletes';
+import { ApiError } from './api/client';
+import type { AthleteProfile } from './api/types';
+
+import './App.css';
+
+type ProfileState =
+    | { status: 'loading' }
+    | { status: 'success'; profiles: AthleteProfile[] }
+    | { status: 'error'; message: string };
+
+export default function App() {
+  const [profileState, setProfileState] = useState<ProfileState>({status: 'loading',});
+  const [reloadCount, setReloadCount] = useState(0);
+
+  // Load athlete profiles when the component mounts or when reloadCount changes.
+  useEffect(() => {
+    const controller = new AbortController();
+
+    // Function to load athlete profiles from the API.
+    async function loadProfiles() {
+      try {
+        // Fetch athlete profiles from the API.
+        const profiles = await getAthleteProfiles(controller.signal);
+
+        if (!controller.signal.aborted) {
+          setProfileState({status: 'success', profiles,});
+        }
+      } catch (error: unknown) {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        setProfileState({
+          status: 'error',
+          message:
+              error instanceof ApiError
+                  ? error.message
+                  : 'Unable to load athlete profiles. Please try again.',
+        });
+      }
+    }
+
+    // Call the function to load athlete profiles.
+    void loadProfiles();
+
+    // Cleanup function to abort the fetch request if the component unmounts or reloadCount changes.
+    return () => {controller.abort();};
+  }, [reloadCount]);
+
+  // Function to reload athlete profiles by incrementing the reloadCount state.
+  function reloadProfiles() {
+    setProfileState({ status: 'loading' });
+    setReloadCount((count) => count + 1);
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+      <main className="app">
+        <header className="app-header">
+          <div>
+            <p className="app-name">PacePilot</p>
+            <h1>Athlete profiles</h1>
+          </div>
 
-      <div className="ticks"></div>
+          <button type="button" onClick={reloadProfiles} disabled={profileState.status === 'loading'}>
+            {profileState.status === 'error' ? 'Retry' : 'Refresh'}
+          </button>
+        </header>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        {profileState.status === 'loading' && (<p role="status">Loading athlete profiles...</p>)}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        {profileState.status === 'error' && (<p role="alert">{profileState.message}</p>)}
+
+        {profileState.status === 'success' && (
+            profileState.profiles.length === 0 ? (
+                <p>No athlete profiles yet.</p>
+            ) : (
+                <ul className="profile-list">
+                  {profileState.profiles.map((profile) => (
+                      <li key={profile.id} className="profile-card">
+                        <h2>{profile.displayName}</h2>
+                        <p>
+                          Training days per week: {profile.availableTrainingDaysPerWeek}
+                        </p>
+                      </li>
+                  ))}
+                </ul>
+            )
+        )}
+      </main>
+  );
 }
-
-export default App
