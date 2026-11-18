@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { getAthleteProfiles } from './api/athletes';
+import CreateAthleteProfileForm from './components/CreateAthleteProfileForm';
 import { ApiError } from './api/client';
 import type { AthleteProfile } from './api/types';
 
@@ -68,6 +69,8 @@ export default function App() {
             {profileState.status === 'error' ? 'Retry' : 'Refresh'}
           </button>
         </header>
+
+        <CreateAthleteProfileForm onCreated={reloadProfiles} />
 
         {profileState.status === 'loading' && (<p role="status">Loading athlete profiles...</p>)}
 
