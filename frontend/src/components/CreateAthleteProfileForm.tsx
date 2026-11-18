@@ -1,39 +1,39 @@
-import { useRef, useState } from 'react';
+import {useRef, useState} from 'react';
 
-import { createAthleteProfile } from '../api/athletes';
-import { ApiError } from '../api/client';
+import {createAthleteProfile} from '../api/athletes';
+import {ApiError} from '../api/client';
 
-import type {AthleteProfile, CreateAthleteProfileRequest, DistanceUnit, ExperienceLevel, GoalType,} from '../api/types';
+import type {AthleteProfile, CreateAthleteProfileRequest, DistanceUnit, ExperienceLevel, GoalType} from '../api/types';
 
 interface Option<T extends string> {
     value: T;
     label: string;
 }
 
-type SubmissionState =
-    | { status: 'idle' }
-    | { status: 'saving' }
-    | { status: 'error'; message: string }
-    | { status: 'success'; message: string };
-
 const experienceOptions: Option<ExperienceLevel>[] = [
-    { value: 'BEGINNER', label: 'Beginner' },
-    { value: 'INTERMEDIATE', label: 'Intermediate' },
-    { value: 'ADVANCED', label: 'Advanced' },
+    {value: 'BEGINNER', label: 'Beginner'},
+    {value: 'INTERMEDIATE', label: 'Intermediate'},
+    {value: 'ADVANCED', label: 'Advanced'}
 ];
 
 const goalOptions: Option<GoalType>[] = [
-    { value: 'GENERAL_FITNESS', label: 'General fitness' },
-    { value: 'FIVE_K', label: '5K' },
-    { value: 'TEN_K', label: '10K' },
-    { value: 'HALF_MARATHON', label: 'Half marathon' },
-    { value: 'MARATHON', label: 'Marathon' },
+    {value: 'GENERAL_FITNESS', label: 'General fitness'},
+    {value: 'FIVE_K', label: '5K'},
+    {value: 'TEN_K', label: '10K'},
+    {value: 'HALF_MARATHON', label: 'Half marathon'},
+    {value: 'MARATHON', label: 'Marathon'}
 ];
 
 const distanceOptions: Option<DistanceUnit>[] = [
-    { value: 'MILES', label: 'Miles' },
-    { value: 'KILOMETERS', label: 'Kilometers' },
+    {value: 'MILES', label: 'Miles'},
+    {value: 'KILOMETERS', label: 'Kilometers'}
 ];
+
+type SubmissionState =
+    | {status: 'idle'}
+    | {status: 'saving'}
+    | {status: 'error'; message: string}
+    | {status: 'success'; message: string};
 
 // Retrieves current dat in YYYY-MM-DD format
 function localToday(): string {
@@ -53,16 +53,15 @@ export default function CreateAthleteProfileForm(props: {onCreated: () => void})
     const saving = submission.status === 'saving';
 
     function showError(message: string) {
-        setSubmission({status: 'error', message});
+        setSubmission({status: 'error', message: message});
     }
 
-    // Prevents a separate form submission from occurring while a previous submission is still pending or exits if form is invalid
     async function handleSubmit(form: HTMLFormElement) {
+        // Prevents a separate form submission from occurring while a previous submission is still pending or exits if form is invalid
         if (pending.current || !form.reportValidity()) {
             return;
         }
-
-        // Read form data from form fields
+        
         const data = new FormData(form);
         // Helper function to read and trim FormData values and return them as strings.
         const read = (name: string) => String(data.get(name) ?? '').trim();
