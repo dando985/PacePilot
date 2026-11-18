@@ -150,9 +150,10 @@ export default function CreateAthleteProfileForm(props: {onCreated: () => void})
     }
 
     return (
-        <form className="profile-form" aria-busy={saving} onSubmit={(event) => {
-            event.preventDefault();
-            void handleSubmit(event.currentTarget);
+        <form className="profile-form" aria-busy={saving}
+              onSubmit={(event) => {
+                event.preventDefault();
+                void handleSubmit(event.currentTarget);
         }}>
             <h2>Create athlete profile</h2>
 
