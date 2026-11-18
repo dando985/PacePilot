@@ -244,6 +244,171 @@ html body {
   color: var(--color-primary);
 }
 
+.profile-card button {
+  margin-top: 1rem;
+}
+
+.profile-card button[aria-pressed="false"] {
+  background-color: var(--color-surface);
+  color: var(--color-primary);
+}
+
+.profile-card button[aria-pressed="false"]:hover:not(:disabled) {
+  background-color: #edf7ef;
+  border-color: var(--color-primary-hover);
+}
+
+.profile-card button[aria-pressed="true"] {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.training-plans {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.training-plans-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.training-plans-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.training-plans > p {
+  margin: 0;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background-color: var(--color-surface);
+  color: var(--color-muted);
+  overflow-wrap: anywhere;
+}
+
+.training-plans > [role="alert"] {
+  border-color: #ebc4c4;
+  background-color: #fff1f1;
+  color: #8a2929;
+}
+
+.plan-list {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.plan-card {
+  min-width: 0;
+  padding: 1.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  background-color: var(--color-surface);
+  overflow-wrap: anywhere;
+}
+
+.plan-card > h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.2rem;
+}
+
+.plan-card > p {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.plan-card details {
+  margin-top: 1rem;
+}
+
+.plan-card summary {
+  min-height: 2.75rem;
+  padding: 0.5rem 0;
+  border-radius: 0.25rem;
+  color: var(--color-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.plan-card summary:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+.plan-card summary:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.plan-week {
+  margin-top: 1.5rem;
+}
+
+.plan-week > h4 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.plan-week > p {
+  margin: 0.25rem 0 1rem;
+  color: var(--color-muted);
+}
+
+.workout-list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.workout-list > li {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background-color: var(--color-page);
+  overflow-wrap: anywhere;
+}
+
+.workout-list h5 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.workout-list p {
+  margin: 0.35rem 0 0;
+  color: var(--color-muted);
+}
+
+.workout-list .workout-instructions {
+  margin-top: 0.75rem;
+  color: var(--color-text);
+  white-space: pre-wrap;
+}
+
+@media (max-width: 600px) {
+  .training-plans-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .training-plans-header button,
+  .profile-card button {
+    width: 100%;
+  }
+
+  .plan-card {
+    padding: 1rem;
+  }
+}
+
 
 @media (max-width: 600px) {
   .app {
