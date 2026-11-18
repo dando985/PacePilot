@@ -42,3 +42,70 @@ export interface CreateAthleteProfileRequest {
     runningDistanceUnit?: DistanceUnit | null;
     goal: CreateFitnessGoalRequest;
 }
+
+export type WorkoutType =
+    | 'REST'
+    | 'WALK'
+    | 'EASY_RUN'
+    | 'RECOVERY_RUN'
+    | 'LONG_RUN'
+    | 'TEMPO_RUN'
+    | 'INTERVALS'
+    | 'STRENGTH'
+    | 'CROSS_TRAINING'
+    | 'RACE';
+
+export interface PlannedWorkout {
+    id: string;
+    scheduledDate: string;
+    type: WorkoutType;
+    title: string;
+    targetDistance: number | null;
+    distanceUnit: DistanceUnit | null;
+    targetDurationMinutes: number | null;
+    instructions: string;
+}
+
+export interface TrainingWeek {
+    weekNumber: number;
+    startDate: string;
+    workouts: PlannedWorkout[];
+}
+
+export interface TrainingPlan {
+    id: string;
+    athleteProfileId: string;
+    name: string;
+    startDate: string;
+    endDate: string;
+    weeks: TrainingWeek[];
+}
+
+export interface CreatePlannedWorkoutRequest {
+    scheduledDate: string;
+    type: WorkoutType;
+    title: string;
+    targetDistance?: number | null;
+    distanceUnit?: DistanceUnit | null;
+    targetDurationMinutes?: number | null;
+    instructions: string;
+}
+
+export interface CreateTrainingWeekRequest {
+    weekNumber: number;
+    startDate: string;
+    workouts: CreatePlannedWorkoutRequest[];
+}
+
+export interface CreateTrainingPlanRequest {
+    name: string;
+    startDate: string;
+    endDate: string;
+    weeks: CreateTrainingWeekRequest[];
+}
+
+export interface GenerateTrainingPlanRequest {
+    name: string;
+    startDate: string;
+    endDate: string;
+}
