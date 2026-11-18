@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react';
 
 import {getTrainingPlans} from '../api/trainingPlans';
+import GenerateTrainingPlanForm from './GenerateTrainingPlanForm';
 import {ApiError} from '../api/client';
 import type {TrainingPlan} from '../api/types';
 
@@ -55,6 +56,8 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                     {planState.status === 'error' ? 'Retry' : 'Refresh'}
                 </button>
             </header>
+
+            <GenerateTrainingPlanForm athleteId={props.athleteId} onGenerated={reloadPlans}/>
 
             {planState.status === 'loading' && (<p role="status">Loading training plans...</p>)}
 
