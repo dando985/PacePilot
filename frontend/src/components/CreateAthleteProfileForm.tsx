@@ -5,10 +5,6 @@ import { ApiError } from '../api/client';
 
 import type {AthleteProfile, CreateAthleteProfileRequest, DistanceUnit, ExperienceLevel, GoalType,} from '../api/types';
 
-interface CreateAthleteProfileFormProps {
-    onCreated: (profile: AthleteProfile) => void;
-}
-
 interface Option<T extends string> {
     value: T;
     label: string;
@@ -51,21 +47,24 @@ function localToday(): string {
 }
 
 // Form for creating a new athlete profile.
-export default function CreateAthleteProfileForm({onCreated,}: CreateAthleteProfileFormProps) {
-    const [submission, setSubmission] = useState<SubmissionState>({status: 'idle',});
+export default function CreateAthleteProfileForm(props: {onCreated: () => void}) {
+    const [submission, setSubmission] = useState<SubmissionState>({status: 'idle'});
     const pending = useRef(false);
     const saving = submission.status === 'saving';
 
     function showError(message: string) {
-        setSubmission({ status: 'error', message });
+        setSubmission({status: 'error', message});
     }
 
+    // Prevents a separate form submission from occurring while a previous submission is still pending or exits if form is invalid
     async function handleSubmit(form: HTMLFormElement) {
         if (pending.current || !form.reportValidity()) {
             return;
         }
 
+        // Read form data from form fields
         const data = new FormData(form);
+        // Helper function to read and trim FormData values and return them as strings.
         const read = (name: string) => String(data.get(name) ?? '').trim();
 
         const displayName = read('displayName');
@@ -126,7 +125,7 @@ export default function CreateAthleteProfileForm({onCreated,}: CreateAthleteProf
         };
 
         pending.current = true;
-        setSubmission({ status: 'saving' });
+        setSubmission({status: 'saving'});
 
         let profile: AthleteProfile;
 
@@ -146,7 +145,8 @@ export default function CreateAthleteProfileForm({onCreated,}: CreateAthleteProf
             message: `Created profile for ${profile.displayName}.`,
         });
 
-        onCreated(profile);
+        // Notify the parent component that a new profile has been created, requesting a reload of the athlete profiles list.
+        props.onCreated();
     }
 
     return (
