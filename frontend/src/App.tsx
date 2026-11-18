@@ -1,20 +1,23 @@
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 
-import { getAthleteProfiles } from './api/athletes';
+import {getAthleteProfiles} from './api/athletes';
 import CreateAthleteProfileForm from './components/CreateAthleteProfileForm';
-import { ApiError } from './api/client';
-import type { AthleteProfile } from './api/types';
+import TrainingPlansPanel from './components/TrainingPlansPanel';
+
+import {ApiError} from './api/client';
+import type {AthleteProfile} from './api/types';
 
 import './App.css';
 
 type ProfileState =
-    | { status: 'loading' }
-    | { status: 'success'; profiles: AthleteProfile[] }
-    | { status: 'error'; message: string };
+    | {status: 'loading'}
+    | {status: 'success'; profiles: AthleteProfile[]}
+    | {status: 'error'; message: string};
 
 export default function App() {
   const [profileState, setProfileState] = useState<ProfileState>({status: 'loading',});
   const [reloadCount, setReloadCount] = useState(0);
+  const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null,);
 
   // Load athlete profiles when the component mounts or when reloadCount changes.
   useEffect(() => {
@@ -84,14 +87,25 @@ export default function App() {
                   {profileState.profiles.map((profile) => (
                       <li key={profile.id} className="profile-card">
                         <h2>{profile.displayName}</h2>
+
                         <p>
                           Training days per week: {profile.availableTrainingDaysPerWeek}
                         </p>
+
+                        <button
+                            type="button"
+                            onClick={() => setSelectedAthleteId(profile.id)}
+                            aria-pressed={selectedAthleteId === profile.id}
+                        >
+                          View training plans
+                        </button>
                       </li>
                   ))}
                 </ul>
             )
         )}
+
+        {selectedAthleteId !== null && (<TrainingPlansPanel key={selectedAthleteId} athleteId={selectedAthleteId}/>)}
       </main>
   );
 }
