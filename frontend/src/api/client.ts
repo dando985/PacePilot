@@ -16,7 +16,7 @@ export class ApiError extends Error {
 }
 
 export async function apiRequest<T>(path: string, options: ApiRequestOptions = {},): Promise<T> {
-    // Destructure the options to separate the body and headers from other request options.
+    // Destructure the options to separate the body and headers (renamed to providedHeaders) from other request options.
     const { body, headers: providedHeaders, ...requestOptions } = options;
 
     const headers = new Headers(providedHeaders);
