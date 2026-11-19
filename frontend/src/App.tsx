@@ -134,8 +134,7 @@ export default function App() {
             )
         )}
 
-        {selectedAthleteId !== null && (<TrainingPlansPanel key={selectedAthleteId} athleteId={selectedAthleteId}/>
-        )}
+        {selectedAthleteId !== null && (<TrainingPlansPanel key={selectedAthleteId} athleteId={selectedAthleteId}/>)}
       </main>
   );
 }
