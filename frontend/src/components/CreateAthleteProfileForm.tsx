@@ -3,7 +3,7 @@ import {useRef, useState} from 'react';
 import {createAthleteProfile} from '../api/athletes';
 import {ApiError} from '../api/client';
 
-import type {AthleteProfile, CreateAthleteProfileRequest, DistanceUnit, ExperienceLevel, GoalType} from '../api/types';
+import type {AthleteProfile, CreateAthleteProfileRequest, ExperienceLevel, Gender, WeightUnit,} from '../api/types';
 
 interface Option<T extends string> {
     value: T;
@@ -16,17 +16,17 @@ const experienceOptions: Option<ExperienceLevel>[] = [
     {value: 'ADVANCED', label: 'Advanced'}
 ];
 
-const goalOptions: Option<GoalType>[] = [
-    {value: 'GENERAL_FITNESS', label: 'General fitness'},
-    {value: 'FIVE_K', label: '5K'},
-    {value: 'TEN_K', label: '10K'},
-    {value: 'HALF_MARATHON', label: 'Half marathon'},
-    {value: 'MARATHON', label: 'Marathon'}
+const genderOptions: Option<Gender>[] = [
+    {value: 'MALE', label: 'Male'},
+    {value: 'FEMALE', label: 'Female'},
+    {value: 'NON_BINARY', label: 'Non-binary'},
+    {value: 'OTHER', label: 'Other'},
+    {value: 'PREFER_NOT_TO_SAY', label: 'Prefer not to say'},
 ];
 
-const distanceOptions: Option<DistanceUnit>[] = [
-    {value: 'MILES', label: 'Miles'},
-    {value: 'KILOMETERS', label: 'Kilometers'}
+const weightUnitOptions: Option<WeightUnit>[] = [
+    {value: 'KILOGRAMS', label: 'Kilograms'},
+    {value: 'POUNDS', label: 'Pounds'},
 ];
 
 type SubmissionState =
@@ -67,60 +67,38 @@ export default function CreateAthleteProfileForm(props: {onCreated: () => void})
         const read = (name: string) => String(data.get(name) ?? '').trim();
 
         const displayName = read('displayName');
-        const targetDate = read('targetDate');
-        const trainingDays = Number(read('availableTrainingDaysPerWeek'));
-        const experienceLevel = experienceOptions.find((option) => option.value === read('experienceLevel'),)?.value;
-        const goalType = goalOptions.find((option) => option.value === read('goalType'),)?.value;
-        const distanceUnit = distanceOptions.find((option) => option.value === read('runningDistanceUnit'),)?.value;
-        const distanceText = read('currentWeeklyRunningDistance');
-        const timeText = read('targetTimeMinutes');
-        const weeklyDistance = distanceText === '' ? null : Number(distanceText);
-        const targetTimeMinutes = timeText === '' ? null : Number(timeText);
+        const birthDate = read('birthDate');
+        const weightText = read('weight');
+        const weight = Number(weightText);
+        const experienceLevel = experienceOptions.find(
+            (option) => option.value === read('experienceLevel'))?.value;
+        const gender = genderOptions.find(
+            (option) => option.value === read('gender'))?.value;
+        const weightUnit = weightUnitOptions.find(
+            (option) => option.value === read('weightUnit'))?.value;
 
-        if (!displayName || !experienceLevel || !goalType || !targetDate) {
+        if (!displayName || !birthDate || !weightText || !experienceLevel || !gender || !weightUnit) {
             showError('Complete all required fields.');
             return;
         }
 
-        if (!Number.isInteger(trainingDays) || trainingDays < 1 || trainingDays > 7) {
-            showError('Training days must be a whole number from 1 to 7.');
+        if (birthDate > localToday()) {
+            showError('Birth date cannot be in the future.');
             return;
         }
 
-        if (weeklyDistance !== null && (!Number.isFinite(weeklyDistance) || weeklyDistance < 0)) {
-            showError('Weekly running distance must be a finite, nonnegative number.');
-            return;
-        }
-
-        const hasDistance = weeklyDistance !== null;
-        const hasDistanceUnit = distanceUnit !== undefined;
-
-        if (hasDistance !== hasDistanceUnit) {
-            showError('Provide both weekly running distance and its unit, or leave both blank.');
-            return;
-        }
-
-        if (targetTimeMinutes !== null && (!Number.isInteger(targetTimeMinutes) || targetTimeMinutes < 1 || targetTimeMinutes > 2_147_483_647)) {
-            showError('Target time must be a positive whole number within the supported range.');
-            return;
-        }
-
-        if (targetDate < localToday()) {
-            showError('Choose today or a future date for your goal.');
+        if (!Number.isFinite(weight) || weight <= 0) {
+            showError('Weight must be a finite number greater than zero.');
             return;
         }
 
         const request: CreateAthleteProfileRequest = {
             displayName,
+            birthDate,
+            weight,
+            weightUnit,
+            gender,
             experienceLevel,
-            availableTrainingDaysPerWeek: trainingDays,
-            currentWeeklyRunningDistance: weeklyDistance,
-            runningDistanceUnit: distanceUnit ?? null,
-            goal: {
-                type: goalType,
-                targetDate,
-                targetTimeMinutes,
-            },
         };
 
         pending.current = true;
@@ -131,12 +109,13 @@ export default function CreateAthleteProfileForm(props: {onCreated: () => void})
         try {
             profile = await createAthleteProfile(request);
         } catch (error: unknown) {
-            showError(error instanceof ApiError ? error.message : 'Unable to create the profile. Please try again.',);
+            showError(error instanceof ApiError ? error.message : 'Unable to create the profile. Please try again.');
             return;
         } finally {
             pending.current = false;
         }
 
+        // Reset the form after successful submission
         form.reset();
 
         setSubmission({
@@ -144,7 +123,7 @@ export default function CreateAthleteProfileForm(props: {onCreated: () => void})
             message: `Created profile for ${profile.displayName}.`,
         });
 
-        // Notify the parent component that a new profile has been created, requesting a reload of the athlete profiles list.
+        // Call the onCreated callback to notify the parent component that a new profile has been created
         props.onCreated();
     }
 
@@ -153,7 +132,8 @@ export default function CreateAthleteProfileForm(props: {onCreated: () => void})
               onSubmit={(event) => {
                 event.preventDefault();
                 void handleSubmit(event.currentTarget);
-        }}>
+            }}
+        >
             <h2>Create athlete profile</h2>
 
             <fieldset disabled={saving}>
@@ -162,7 +142,33 @@ export default function CreateAthleteProfileForm(props: {onCreated: () => void})
                 <p>
                     <label>
                         Display name
-                        <input name="displayName" autoComplete="nickname" maxLength={100} required/>
+                        <input
+                            name="displayName"
+                            autoComplete="nickname"
+                            maxLength={100}
+                            required
+                        />
+                    </label>
+                </p>
+
+                <p>
+                    <label>
+                        Birth date
+                        <input name="birthDate" type="date" autoComplete="bday" max={localToday()} required/>
+                    </label>
+                </p>
+
+                <p>
+                    <label>
+                        Gender
+                        <select name="gender" defaultValue="" required>
+                            <option value="" disabled>Select gender</option>
+                            {genderOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
                     </label>
                 </p>
 
@@ -179,45 +185,24 @@ export default function CreateAthleteProfileForm(props: {onCreated: () => void})
                         </select>
                     </label>
                 </p>
-
-                <p>
-                    <label>
-                        Available training days per week
-                        <input name="availableTrainingDaysPerWeek" type="number" min={1} max={7} step={1} required/>
-                    </label>
-                </p>
-
-                <p>
-                    <label>
-                        Weekly running distance (optional)
-                        <input name="currentWeeklyRunningDistance" type="number" min={0} step="any"/>
-                    </label>
-                </p>
-
-                <p>
-                    <label>
-                        Distance unit
-                        <select name="runningDistanceUnit" defaultValue="">
-                            <option value="">Not provided</option>
-                            {distanceOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-                </p>
             </fieldset>
 
             <fieldset disabled={saving}>
-                <legend>Fitness goal</legend>
+                <legend>Body measurements</legend>
 
                 <p>
                     <label>
-                        Goal
-                        <select name="goalType" defaultValue="" required>
-                            <option value="" disabled>Select a goal</option>
-                            {goalOptions.map((option) => (
+                        Weight
+                        <input name="weight" type="number" min={0} step="any" required/>
+                    </label>
+                </p>
+
+                <p>
+                    <label>
+                        Weight unit
+                        <select name="weightUnit" defaultValue="" required>
+                            <option value="" disabled>Select weight unit</option>
+                            {weightUnitOptions.map((option) => (
                                 <option key={option.value} value={option.value}>
                                     {option.label}
                                 </option>
@@ -225,23 +210,11 @@ export default function CreateAthleteProfileForm(props: {onCreated: () => void})
                         </select>
                     </label>
                 </p>
-
-                <p>
-                    <label>
-                        Target date
-                        <input name="targetDate" type="date" min={localToday()} required/>
-                    </label>
-                </p>
-
-                <p>
-                    <label>
-                        Target time in minutes (optional)
-                        <input name="targetTimeMinutes" type="number" min={1} max={2_147_483_647} step={1}/>
-                    </label>
-                </p>
             </fieldset>
 
-            <button type="submit" disabled={saving}>{saving ? 'Creating...' : 'Create profile'}</button>
+            <button type="submit" disabled={saving}>
+                {saving ? 'Creating...' : 'Create profile'}
+            </button>
 
             {submission.status === 'error' && (<p role="alert">{submission.message}</p>)}
 

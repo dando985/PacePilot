@@ -1,11 +1,11 @@
 import {useEffect, useState} from 'react';
 
 import {getAthleteProfiles} from './api/athletes';
+import {ApiError} from './api/client';
 import CreateAthleteProfileForm from './components/CreateAthleteProfileForm';
 import TrainingPlansPanel from './components/TrainingPlansPanel';
 
-import {ApiError} from './api/client';
-import type {AthleteProfile} from './api/types';
+import type {AthleteProfile, ExperienceLevel, Gender} from './api/types';
 
 import './App.css';
 
@@ -13,6 +13,20 @@ type ProfileState =
     | {status: 'loading'}
     | {status: 'success'; profiles: AthleteProfile[]}
     | {status: 'error'; message: string};
+
+const genderLabels: Record<Gender, string> = {
+  MALE: 'Male',
+  FEMALE: 'Female',
+  NON_BINARY: 'Non-binary',
+  OTHER: 'Other',
+  PREFER_NOT_TO_SAY: 'Prefer not to say',
+};
+
+const experienceLabels: Record<ExperienceLevel, string> = {
+  BEGINNER: 'Beginner',
+  INTERMEDIATE: 'Intermediate',
+  ADVANCED: 'Advanced',
+};
 
 export default function App() {
   const [profileState, setProfileState] = useState<ProfileState>({status: 'loading',});
@@ -31,6 +45,11 @@ export default function App() {
 
         if (!controller.signal.aborted) {
           setProfileState({status: 'success', profiles,});
+
+          setSelectedAthleteId((currentId) =>
+              profiles.some((profile) => profile.id === currentId)
+                  ? currentId : null
+          );
         }
       } catch (error: unknown) {
         if (controller.signal.aborted) {
@@ -39,11 +58,7 @@ export default function App() {
 
         setProfileState({
           status: 'error',
-          message:
-              error instanceof ApiError
-                  ? error.message
-                  : 'Unable to load athlete profiles. Please try again.',
-        });
+          message: error instanceof ApiError ? error.message : 'Unable to load athlete profiles. Please try again.',});
       }
     }
 
@@ -73,7 +88,7 @@ export default function App() {
           </button>
         </header>
 
-        <CreateAthleteProfileForm onCreated={reloadProfiles} />
+        <CreateAthleteProfileForm onCreated={reloadProfiles}/>
 
         {profileState.status === 'loading' && (<p role="status">Loading athlete profiles...</p>)}
 
@@ -89,7 +104,21 @@ export default function App() {
                         <h2>{profile.displayName}</h2>
 
                         <p>
-                          Training days per week: {profile.availableTrainingDaysPerWeek}
+                          Birth date:{' '}
+                          <time dateTime={profile.birthDate}>
+                            {profile.birthDate}
+                          </time>
+                        </p>
+
+                        <p>
+                          Weight: {profile.weight}{' '}
+                          {profile.weightUnit === 'KILOGRAMS' ? 'kg' : 'lb'}
+                        </p>
+
+                        <p>Gender: {genderLabels[profile.gender]}</p>
+
+                        <p>
+                          Experience: {experienceLabels[profile.experienceLevel]}
                         </p>
 
                         <button
@@ -105,7 +134,8 @@ export default function App() {
             )
         )}
 
-        {selectedAthleteId !== null && (<TrainingPlansPanel key={selectedAthleteId} athleteId={selectedAthleteId}/>)}
+        {selectedAthleteId !== null && (<TrainingPlansPanel key={selectedAthleteId} athleteId={selectedAthleteId}/>
+        )}
       </main>
   );
 }
