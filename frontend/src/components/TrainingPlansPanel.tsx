@@ -3,12 +3,26 @@ import {useEffect, useState} from 'react';
 import {getTrainingPlans} from '../api/trainingPlans';
 import GenerateTrainingPlanForm from './GenerateTrainingPlanForm';
 import {ApiError} from '../api/client';
-import type {TrainingPlan} from '../api/types';
+
+import type {DistanceUnit, GoalType, TrainingPlan} from '../api/types';
 
 type PlanState =
     | {status: 'loading'}
     | {status: 'success'; plans: TrainingPlan[]}
     | {status: 'error'; message: string};
+
+const goalLabels: Record<GoalType, string> = {
+    GENERAL_FITNESS: 'General fitness',
+    FIVE_K: '5K',
+    TEN_K: '10K',
+    HALF_MARATHON: 'Half marathon',
+    MARATHON: 'Marathon',
+};
+
+const distanceLabels: Record<DistanceUnit, string> = {
+    MILES: 'Miles',
+    KILOMETERS: 'Kilometers',
+};
 
 export default function TrainingPlansPanel(props: {athleteId: string}) {
     const [planState, setPlanState] = useState<PlanState>({status: 'loading'});
@@ -71,7 +85,26 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                         {planState.plans.map((plan) => (
                             <article key={plan.id} className="plan-card">
                                 <h3>{plan.name}</h3>
+
                                 <p>{plan.startDate} – {plan.endDate}</p>
+
+                                <p>Goal: {goalLabels[plan.goal.type]}</p>
+
+                                <p>Goal target date: {plan.goal.targetDate}</p>
+
+                                {plan.goal.targetTimeMinutes !== null && (
+                                    <p>
+                                        Target finish time: {plan.goal.targetTimeMinutes} min
+                                    </p>
+                                )}
+
+                                <p>
+                                    Training days per week: {plan.availableTrainingDaysPerWeek}
+                                </p>
+
+                                <p>
+                                    Preferred distance unit: {distanceLabels[plan.distanceUnit]}
+                                </p>
 
                                 <details>
                                     <summary>View workouts</summary>
@@ -91,9 +124,7 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                                                             workout.distanceUnit !== null && (
                                                                 <p>
                                                                     Distance: {workout.targetDistance}{' '}
-                                                                    {workout.distanceUnit === 'MILES'
-                                                                        ? 'mi'
-                                                                        : 'km'}
+                                                                    {workout.distanceUnit === 'MILES' ? 'mi' : 'km'}
                                                                 </p>
                                                             )}
 
