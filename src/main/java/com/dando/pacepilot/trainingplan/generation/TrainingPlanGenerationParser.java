@@ -90,12 +90,24 @@ public class TrainingPlanGenerationParser {
                             .formatted(location, maximum, workout.targetKind(), workout.targetValue())
             );
         }
+
+        String comment = workout.coachingComment();
+
+        if (comment == null) {
+            throw new TextGenerationException(
+                    location + ".coachingComment is required; " + "use an empty string when no comment is needed.");
+        }
+
+        if (comment.codePointCount(0, comment.length()) > 240) {
+            throw new TextGenerationException(location + ".coachingComment must contain at most 240 characters.");
+        }
     }
 
     public record GeneratedWorkout(
             WorkoutType type,
             TargetKind targetKind,
-            Integer targetValue
+            Integer targetValue,
+            String coachingComment
     ) {
     }
 

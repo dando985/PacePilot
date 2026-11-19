@@ -35,8 +35,8 @@ public class TrainingPlanGenerationPromptBuilder {
             - Its only top-level field is workouts.
             - Return exactly workoutCount workouts, one for each trainingSlots entry.
             - Preserve slot order: workouts[i] belongs to trainingSlots[i].
-            - Each workout has only type, targetKind, and targetValue.
-            - Java supplies plan metadata, dates, REST days, titles, and instructions.
+            - Each workout has exactly four fields: type, targetKind, targetValue, and coachingComment.
+            - Java supplies plan metadata, dates, REST days, titles, and core instructions.
             - Return active workouts only. Never return REST.
 
             Target rules:
@@ -47,6 +47,23 @@ public class TrainingPlanGenerationPromptBuilder {
             - The target covers the whole workout, including any warm-up and cooldown.
             - Do not return zero, null, fractional values, or additional step targets.
             - Stay within the bounds in outputSchema. Maximums are ceilings, not goals.
+            
+            Coaching comment rules:
+            - Always return coachingComment as a string of at most 240 characters.
+            - Write one or two short sentences addressing the athlete as "you".
+            - Personalize the note using the supplied goal, experience, baseline,
+              or this workout's role in the plan. Use only information provided.
+            - Add useful context about workout purpose, effort, or encouragement.
+              Avoid simply repeating the title, target, or the same generic note.
+            - Keep the comment consistent with this workout's type and target
+              and the other workouts you are returning.
+            - Do not prescribe additional activities, numeric workout targets,
+              paces, repetitions, or interval structures.
+            - Do not invent completed sessions, observed progress, health conditions,
+              or feedback about the athlete's fatigue or recovery.
+            - Use "" only when you cannot add a useful, grounded comment.
+            - Return plain text without Markdown, headings, or a "Coach's note" prefix.
+              Java supplies the display label when appending the comment.
 
             Planning guidance:
             - Group trainingSlots by weekNumber and plan each week as a whole.

@@ -262,9 +262,7 @@ public class TrainingPlanGenerationService {
             case STRENGTH -> "Strength Training";
             case CROSS_TRAINING -> "Cross Training";
             case RACE -> "Race";
-            case REST -> throw new IllegalArgumentException(
-                    "REST workouts are created separately."
-            );
+            case REST -> throw new IllegalArgumentException("REST workouts are created separately.");
         };
 
         String guidance = switch (workout.type()) {
@@ -293,7 +291,21 @@ public class TrainingPlanGenerationService {
 
         String instructions = title + ": " + target + ". " + guidance + " Include any warm-up and cooldown within this total.";
 
-        return new CreatePlannedWorkoutRequest(date, workout.type(), title, distance, unit, duration, instructions);
+        String coachingComment = workout.coachingComment();
+
+        if (!coachingComment.isBlank()) {
+            instructions += "\n\nCoach's note: " + coachingComment.strip();
+        }
+
+        return new CreatePlannedWorkoutRequest(
+                date,
+                workout.type(),
+                title,
+                distance,
+                unit,
+                duration,
+                instructions
+        );
     }
 
     private String buildRetrievalQuery(AthleteProfile profile) {

@@ -74,7 +74,18 @@ public class TrainingPlanJsonSchema {
                 )
         );
 
-        return objectSchema(properties, List.of("type", "targetKind", "targetValue"));
+        // Includes any additional comments AI may provide to the athlete about the workout, such as pacing or form tips.
+        properties.put(
+                "coachingComment",
+                Map.of(
+                        "type", "string",
+                        "maxLength", 240
+                )
+        );
+
+
+        return objectSchema(properties, List.of("type", "targetKind", "targetValue", "coachingComment")
+        );
     }
 
     private Map<String, Object> objectSchema(Map<String, Object> properties, List<String> required) {
