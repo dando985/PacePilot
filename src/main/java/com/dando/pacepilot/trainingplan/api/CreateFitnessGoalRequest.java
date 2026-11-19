@@ -1,7 +1,6 @@
-package com.dando.pacepilot.athlete.api;
+package com.dando.pacepilot.trainingplan.api;
 
-import com.dando.pacepilot.athlete.domain.GoalType;
-import jakarta.validation.constraints.FutureOrPresent;
+import com.dando.pacepilot.trainingplan.domain.GoalType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
@@ -13,7 +12,6 @@ public record CreateFitnessGoalRequest(
         GoalType type,
 
         @NotNull(message = "Target date is required")
-        @FutureOrPresent(message = "Target date cannot be in the past")
         LocalDate targetDate,
 
         @Positive(message = "Target time must be greater than zero")

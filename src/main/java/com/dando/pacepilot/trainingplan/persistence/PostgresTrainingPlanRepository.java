@@ -3,6 +3,7 @@ package com.dando.pacepilot.trainingplan.persistence;
 import com.dando.pacepilot.trainingplan.domain.PlannedWorkout;
 import com.dando.pacepilot.trainingplan.domain.TrainingPlan;
 import com.dando.pacepilot.trainingplan.domain.TrainingWeek;
+import com.dando.pacepilot.trainingplan.domain.FitnessGoal;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,12 +44,19 @@ public class PostgresTrainingPlanRepository implements TrainingPlanRepository {
     }
 
     private TrainingPlanEntity toEntity(TrainingPlan plan) {
+        FitnessGoal goal = plan.goal();
+
         TrainingPlanEntity planEntity = new TrainingPlanEntity(
                 plan.id(),
                 plan.athleteProfileId(),
                 plan.name(),
                 plan.startDate(),
-                plan.endDate()
+                plan.endDate(),
+                goal.type(),
+                goal.targetDate(),
+                goal.targetTimeMinutes(),
+                plan.availableTrainingDaysPerWeek(),
+                plan.distanceUnit()
         );
 
         for (TrainingWeek week : plan.weeks()) {
@@ -80,9 +88,13 @@ public class PostgresTrainingPlanRepository implements TrainingPlanRepository {
     }
 
     private TrainingPlan toDomain(TrainingPlanEntity entity) {
-        List<TrainingWeek> weeks = entity.getWeeks().stream()
-                .map(this::toDomainWeek)
-                .toList();
+        FitnessGoal goal = new FitnessGoal(
+                entity.getGoalType(),
+                entity.getGoalTargetDate(),
+                entity.getGoalTargetTimeMinutes()
+        );
+
+        List<TrainingWeek> weeks = entity.getWeeks().stream().map(this::toDomainWeek).toList();
 
         return new TrainingPlan(
                 entity.getId(),
@@ -90,20 +102,17 @@ public class PostgresTrainingPlanRepository implements TrainingPlanRepository {
                 entity.getName(),
                 entity.getStartDate(),
                 entity.getEndDate(),
+                goal,
+                entity.getAvailableTrainingDaysPerWeek(),
+                entity.getDistanceUnit(),
                 weeks
         );
     }
 
     private TrainingWeek toDomainWeek(TrainingWeekEntity entity) {
-        List<PlannedWorkout> workouts = entity.getWorkouts().stream()
-                .map(this::toDomainWorkout)
-                .toList();
+        List<PlannedWorkout> workouts = entity.getWorkouts().stream().map(this::toDomainWorkout).toList();
 
-        return new TrainingWeek(
-                entity.getId().getWeekNumber(),
-                entity.getStartDate(),
-                workouts
-        );
+        return new TrainingWeek(entity.getId().getWeekNumber(), entity.getStartDate(), workouts);
     }
 
     private PlannedWorkout toDomainWorkout(PlannedWorkoutEntity entity) {

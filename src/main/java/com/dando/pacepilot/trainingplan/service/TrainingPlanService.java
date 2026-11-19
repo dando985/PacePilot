@@ -10,6 +10,7 @@ import com.dando.pacepilot.trainingplan.domain.TrainingWeek;
 import com.dando.pacepilot.trainingplan.exception.InvalidTrainingPlanException;
 import com.dando.pacepilot.trainingplan.exception.TrainingPlanNotFoundException;
 import com.dando.pacepilot.trainingplan.persistence.TrainingPlanRepository;
+import com.dando.pacepilot.trainingplan.domain.FitnessGoal;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -47,14 +48,17 @@ public class TrainingPlanService {
         return planRepository.findByAthleteProfileId(athleteId);
     }
 
-    private TrainingPlan toDomain(
-            UUID athleteId,
-            CreateTrainingPlanRequest request
-    ) {
+    // Private helper methods to convert API request objects to domain objects
+    private TrainingPlan toDomain(UUID athleteId, CreateTrainingPlanRequest request) {
         try {
-            List<TrainingWeek> weeks = request.weeks().stream()
-                    .map(this::toDomainWeek)
-                    .toList();
+            FitnessGoal goal = new FitnessGoal(
+                    request.goal().type(),
+                    request.goal().targetDate(),
+                    request.goal().targetTimeMinutes()
+            );
+
+            // convert each CreateTrainingWeekRequest to a TrainingWeek
+            List<TrainingWeek> weeks = request.weeks().stream().map(this::toDomainWeek).toList();
 
             return new TrainingPlan(
                     UUID.randomUUID(),
@@ -62,6 +66,9 @@ public class TrainingPlanService {
                     request.name(),
                     request.startDate(),
                     request.endDate(),
+                    goal,
+                    request.availableTrainingDaysPerWeek(),
+                    request.distanceUnit(),
                     weeks
             );
         } catch (IllegalArgumentException exception) {
@@ -70,20 +77,12 @@ public class TrainingPlanService {
     }
 
     private TrainingWeek toDomainWeek(CreateTrainingWeekRequest request) {
-        List<PlannedWorkout> workouts = request.workouts().stream()
-                .map(this::toDomainWorkout)
-                .toList();
+        List<PlannedWorkout> workouts = request.workouts().stream().map(this::toDomainWorkout).toList();
 
-        return new TrainingWeek(
-                request.weekNumber(),
-                request.startDate(),
-                workouts
-        );
+        return new TrainingWeek(request.weekNumber(), request.startDate(), workouts);
     }
 
-    private PlannedWorkout toDomainWorkout(
-            CreatePlannedWorkoutRequest request
-    ) {
+    private PlannedWorkout toDomainWorkout(CreatePlannedWorkoutRequest request) {
         return new PlannedWorkout(
                 UUID.randomUUID(),
                 request.scheduledDate(),

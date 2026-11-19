@@ -2,7 +2,6 @@ package com.dando.pacepilot.athlete.service;
 
 import com.dando.pacepilot.athlete.api.CreateAthleteProfileRequest;
 import com.dando.pacepilot.athlete.domain.AthleteProfile;
-import com.dando.pacepilot.athlete.domain.FitnessGoal;
 import com.dando.pacepilot.athlete.exception.AthleteProfileNotFoundException;
 import com.dando.pacepilot.athlete.repository.AthleteProfileRepository;
 import org.springframework.stereotype.Service;
@@ -20,29 +19,21 @@ public class AthleteProfileService {
     }
 
     public AthleteProfile createProfile(CreateAthleteProfileRequest request) {
-        FitnessGoal goal = new FitnessGoal(
-                request.goal().type(),
-                request.goal().targetDate(),
-                request.goal().targetTimeMinutes()
-        );
-
         AthleteProfile profile = new AthleteProfile(
                 UUID.randomUUID(),
                 request.displayName(),
-                request.experienceLevel(),
-                request.availableTrainingDaysPerWeek(),
-                request.currentWeeklyRunningDistance(),
-                request.runningDistanceUnit(),
-                goal
+                request.birthDate(),
+                request.weight(),
+                request.weightUnit(),
+                request.gender(),
+                request.experienceLevel()
         );
 
         return profileRepository.save(profile);
     }
 
     public AthleteProfile getProfileById(UUID id) {
-        return profileRepository
-                .findById(id)
-                .orElseThrow(() -> new AthleteProfileNotFoundException(id));
+        return profileRepository.findById(id).orElseThrow(() -> new AthleteProfileNotFoundException(id));
     }
 
     public List<AthleteProfile> findAllProfiles() {

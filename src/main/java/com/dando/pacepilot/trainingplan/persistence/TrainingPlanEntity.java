@@ -1,18 +1,21 @@
 package com.dando.pacepilot.trainingplan.persistence;
 
+import com.dando.pacepilot.shared.domain.DistanceUnit;
+import com.dando.pacepilot.trainingplan.domain.GoalType;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
+import jakarta.persistence.Table;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -34,11 +37,24 @@ public class TrainingPlanEntity {
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
-    @OneToMany(
-            mappedBy = "plan",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    @Enumerated(EnumType.STRING)
+    @Column(name = "goal_type", nullable = false, length = 30)
+    private GoalType goalType;
+
+    @Column(name = "goal_target_date", nullable = false)
+    private LocalDate goalTargetDate;
+
+    @Column(name = "goal_target_time_minutes")
+    private Integer goalTargetTimeMinutes;
+
+    @Column(name = "available_training_days_per_week", nullable = false)
+    private int availableTrainingDaysPerWeek;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "distance_unit", nullable = false, length = 20)
+    private DistanceUnit distanceUnit;
+
+    @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id.weekNumber ASC")
     private List<TrainingWeekEntity> weeks = new ArrayList<>();
 
@@ -50,13 +66,23 @@ public class TrainingPlanEntity {
             UUID athleteProfileId,
             String name,
             LocalDate startDate,
-            LocalDate endDate
+            LocalDate endDate,
+            GoalType goalType,
+            LocalDate goalTargetDate,
+            Integer goalTargetTimeMinutes,
+            int availableTrainingDaysPerWeek,
+            DistanceUnit distanceUnit
     ) {
         this.id = id;
         this.athleteProfileId = athleteProfileId;
         this.name = name;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.goalType = goalType;
+        this.goalTargetDate = goalTargetDate;
+        this.goalTargetTimeMinutes = goalTargetTimeMinutes;
+        this.availableTrainingDaysPerWeek = availableTrainingDaysPerWeek;
+        this.distanceUnit = distanceUnit;
     }
 
     public UUID getId() {
@@ -77,6 +103,26 @@ public class TrainingPlanEntity {
 
     public LocalDate getEndDate() {
         return endDate;
+    }
+
+    public GoalType getGoalType() {
+        return goalType;
+    }
+
+    public LocalDate getGoalTargetDate() {
+        return goalTargetDate;
+    }
+
+    public Integer getGoalTargetTimeMinutes() {
+        return goalTargetTimeMinutes;
+    }
+
+    public int getAvailableTrainingDaysPerWeek() {
+        return availableTrainingDaysPerWeek;
+    }
+
+    public DistanceUnit getDistanceUnit() {
+        return distanceUnit;
     }
 
     public List<TrainingWeekEntity> getWeeks() {

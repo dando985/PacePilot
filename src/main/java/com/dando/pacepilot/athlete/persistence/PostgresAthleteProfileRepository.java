@@ -1,7 +1,7 @@
 package com.dando.pacepilot.athlete.persistence;
 
 import com.dando.pacepilot.athlete.domain.AthleteProfile;
-import com.dando.pacepilot.athlete.domain.FitnessGoal;
+import com.dando.pacepilot.trainingplan.domain.FitnessGoal;
 import com.dando.pacepilot.athlete.repository.AthleteProfileRepository;
 import org.springframework.stereotype.Repository;
 
@@ -43,37 +43,27 @@ public class PostgresAthleteProfileRepository implements AthleteProfileRepositor
 
     // helper to convert AthleteProfile to AthleteProfileEntity for database side use
     private AthleteProfileEntity toEntity(AthleteProfile profile) {
-        FitnessGoal goal = profile.goal();
-
         return new AthleteProfileEntity(
                 profile.id(),
                 profile.displayName(),
-                profile.experienceLevel(),
-                profile.availableTrainingDaysPerWeek(),
-                profile.currentWeeklyRunningDistance(),
-                profile.runningDistanceUnit(),
-                goal.type(),
-                goal.targetDate(),
-                goal.targetTimeMinutes()
+                profile.birthDate(),
+                profile.weight(),
+                profile.weightUnit(),
+                profile.gender(),
+                profile.experienceLevel()
         );
     }
 
     // helper to convert AthleteProfileEntity to AthleteProfile for application side use
     private AthleteProfile toDomain(AthleteProfileEntity entity) {
-        FitnessGoal goal = new FitnessGoal(
-                entity.getGoalType(),
-                entity.getTargetDate(),
-                entity.getTargetTimeMinutes()
-        );
-
         return new AthleteProfile(
                 entity.getId(),
                 entity.getDisplayName(),
-                entity.getExperienceLevel(),
-                entity.getAvailableTrainingDaysPerWeek(),
-                entity.getCurrentWeeklyRunningDistance(),
-                entity.getRunningDistanceUnit(),
-                goal
+                entity.getBirthDate(),
+                entity.getWeight(),
+                entity.getWeightUnit(),
+                entity.getGender(),
+                entity.getExperienceLevel()
         );
     }
 }

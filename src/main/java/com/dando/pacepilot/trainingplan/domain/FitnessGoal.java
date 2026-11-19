@@ -1,4 +1,4 @@
-package com.dando.pacepilot.athlete.domain;
+package com.dando.pacepilot.trainingplan.domain;
 
 import java.time.LocalDate;
 

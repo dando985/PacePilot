@@ -1,15 +1,15 @@
 package com.dando.pacepilot.athlete.api;
 
-import com.dando.pacepilot.shared.domain.DistanceUnit;
 import com.dando.pacepilot.athlete.domain.ExperienceLevel;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
+import com.dando.pacepilot.athlete.domain.Gender;
+import com.dando.pacepilot.shared.domain.WeightUnit;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import jakarta.validation.constraints.AssertTrue;
+
+import java.time.LocalDate;
 
 public record CreateAthleteProfileRequest(
 
@@ -17,35 +17,21 @@ public record CreateAthleteProfileRequest(
         @Size(max = 100, message = "Display name cannot exceed 100 characters")
         String displayName,
 
+        @PastOrPresent(message = "Birth date cannot be in the future")
+        @NotNull(message = "Birth date is required")
+        LocalDate birthDate,
+
+        @Positive(message = "Weight must be greater than zero")
+        @NotNull(message = "Weight is required")
+        Double weight,
+
+        @NotNull(message = "Weight unit is required")
+        WeightUnit weightUnit,
+
+        @NotNull(message = "Gender is required")
+        Gender gender,
+
         @NotNull(message = "Experience level is required")
-        ExperienceLevel experienceLevel,
-
-        @NotNull(message = "Available training days are required")
-        @Min(value = 1, message = "At least one training day is required")
-        @Max(value = 7, message = "Training days cannot exceed seven")
-        Integer availableTrainingDaysPerWeek,
-
-        @PositiveOrZero(message = "Weekly running distance cannot be negative")
-        Double currentWeeklyRunningDistance,
-
-        DistanceUnit runningDistanceUnit,
-
-        @NotNull(message = "Fitness goal is required")
-        @Valid
-        CreateFitnessGoalRequest goal
-)
-{
-
-    // If either running-distance field is supplied, require both fields.
-    @AssertTrue(
-            message = """
-                Running distance and distance unit must \
-                either both be provided or both be omitted
-                """
-    )
-    public boolean isRunningDistanceComplete() {
-        return (currentWeeklyRunningDistance == null && runningDistanceUnit == null)
-                ||
-                (currentWeeklyRunningDistance != null && runningDistanceUnit != null);
-    }
+        ExperienceLevel experienceLevel
+) {
 }

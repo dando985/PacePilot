@@ -70,17 +70,14 @@ public class TrainingPlanGenerationService {
         }
 
         int planDays = validateRequest(request);
-
         AthleteProfile profile = profileService.getProfileById(athleteId);
-        int availableDays = profile.availableTrainingDaysPerWeek();
+        int availableDays = request.availableTrainingDaysPerWeek();
 
-        if (availableDays < 1 || availableDays > 7) {
-            throw invalidRequest("Athlete availability must be between 1 and 7 days per week.");
-        }
-
+        // build the list of training dates based on the plan's start date, end date, and available training days
         List<LocalDate> trainingDates = buildTrainingDates(request.startDate(), planDays, availableDays);
 
-        List<SemanticSearchResult> results = semanticRetriever.search(buildRetrievalQuery(profile), RETRIEVAL_LIMIT);
+        // retrieve relevant training knowledge for the athlete and request
+        List<SemanticSearchResult> results = semanticRetriever.search(buildRetrievalQuery(profile, request), RETRIEVAL_LIMIT);
 
         if (results.isEmpty()) {
             throw new TextGenerationException("No relevant training knowledge was found for this athlete.");
@@ -88,7 +85,7 @@ public class TrainingPlanGenerationService {
 
         List<GeneratedWorkout> generatedWorkouts = generateWorkouts(request, profile, trainingDates, results);
 
-        CreateTrainingPlanRequest plan = buildPlan(request, profile, planDays, trainingDates, generatedWorkouts);
+        CreateTrainingPlanRequest plan = buildPlan(request, planDays, trainingDates, generatedWorkouts);
 
         try {
             return planService.createPlan(athleteId, plan);
@@ -104,6 +101,30 @@ public class TrainingPlanGenerationService {
                 || request.endDate() == null
                 || request.endDate().isBefore(request.startDate())) {
             throw invalidRequest("A plan name and valid date range are required.");
+        }
+
+        if (request.goal() == null
+                || request.goal().type() == null
+                || request.goal().targetDate() == null) {
+            throw invalidRequest("A goal with a type and target date is required.");
+        }
+
+        if (request.goal().targetTimeMinutes() != null && request.goal().targetTimeMinutes() <= 0) {
+            throw invalidRequest("Goal target time must be greater than zero.");
+        }
+
+        if (!request.isGoalDateValid()) {
+            throw invalidRequest("Goal target date cannot be before the plan's start date.");
+        }
+
+        Integer availableDays = request.availableTrainingDaysPerWeek();
+
+        if (availableDays == null || availableDays < 1 || availableDays > 7) {
+            throw invalidRequest("Available training days must be between 1 and 7.");
+        }
+
+        if (request.distanceUnit() == null) {
+            throw invalidRequest("Plan distance unit is required.");
         }
 
         long days = ChronoUnit.DAYS.between(request.startDate(), request.endDate()) + 1;
@@ -183,7 +204,6 @@ public class TrainingPlanGenerationService {
 
     private CreateTrainingPlanRequest buildPlan(
             GenerateTrainingPlanRequest request,
-            AthleteProfile profile,
             int planDays,
             List<LocalDate> trainingDates,
             List<GeneratedWorkout> generatedWorkouts
@@ -194,18 +214,12 @@ public class TrainingPlanGenerationService {
         for (int weekOffset = 0; weekOffset < planDays; weekOffset += 7) {
             List<CreatePlannedWorkoutRequest> workouts = new ArrayList<>();
 
-            int weekEndOffset = Math.min(weekOffset + 7, planDays);
+            for (int offset = weekOffset; offset < Math.min(weekOffset + 7, planDays); offset++) {
 
-            for (int offset = weekOffset; offset < weekEndOffset; offset++) {
                 LocalDate date = request.startDate().plusDays(offset);
 
-                if (workoutIndex < trainingDates.size()
-                        && date.equals(trainingDates.get(workoutIndex))) {
-                    workouts.add(buildWorkout(
-                            date,
-                            generatedWorkouts.get(workoutIndex++),
-                            profile.runningDistanceUnit()
-                    ));
+                if (workoutIndex < trainingDates.size() && date.equals(trainingDates.get(workoutIndex))) {
+                    workouts.add(buildWorkout(date, generatedWorkouts.get(workoutIndex++), request.distanceUnit()));
                 } else {
                     workouts.add(new CreatePlannedWorkoutRequest(
                             date,
@@ -219,14 +233,18 @@ public class TrainingPlanGenerationService {
                 }
             }
 
-            weeks.add(new CreateTrainingWeekRequest(
-                    weekOffset / 7 + 1,
-                    request.startDate().plusDays(weekOffset),
-                    List.copyOf(workouts)
-            ));
+            weeks.add(new CreateTrainingWeekRequest(weekOffset / 7 + 1, request.startDate().plusDays(weekOffset), List.copyOf(workouts)));
         }
 
-        return new CreateTrainingPlanRequest(request.name(), request.startDate(), request.endDate(), List.copyOf(weeks));
+        return new CreateTrainingPlanRequest(
+                request.name(),
+                request.startDate(),
+                request.endDate(),
+                request.goal(),
+                request.availableTrainingDaysPerWeek(),
+                request.distanceUnit(),
+                List.copyOf(weeks)
+        );
     }
 
     private CreatePlannedWorkoutRequest buildWorkout(LocalDate date, GeneratedWorkout workout, DistanceUnit preferredUnit) {
@@ -239,7 +257,7 @@ public class TrainingPlanGenerationService {
             duration = workout.targetValue();
             target = duration + (duration == 1 ? " minute" : " minutes");
         } else {
-            unit = preferredUnit == null ? DistanceUnit.KILOMETERS : preferredUnit;
+            unit = preferredUnit;
 
             BigDecimal metersPerUnit = new BigDecimal(unit == DistanceUnit.MILES ? "1609.344" : "1000");
 
@@ -308,18 +326,23 @@ public class TrainingPlanGenerationService {
         );
     }
 
-    private String buildRetrievalQuery(AthleteProfile profile) {
+    private String buildRetrievalQuery(AthleteProfile profile, GenerateTrainingPlanRequest request) {
         return """
-                %s training plan for a %s athlete with %d training days per week.
-                Weekly workout scheduling, recovery, and gradual progression.
-                """.formatted(
-                readableName(profile.goal() == null ? null : profile.goal().type()),
+            %s training plan for a %s athlete with %d training days per week.
+            Weekly workout scheduling, recovery, and gradual progression.
+            """.formatted(
+                readableName(request.goal().type()),
                 readableName(profile.experienceLevel()),
-                profile.availableTrainingDaysPerWeek()
+                request.availableTrainingDaysPerWeek()
         ).trim();
     }
 
+    // private helper to convert enum values to readable strings for prompt generation
     private String readableName(Enum<?> value) {
-        return value == null ? "unspecified" : value.name().toLowerCase(Locale.ROOT).replace('_', ' ');
+        if (value == null) {
+            return "unspecified";
+        }
+
+        return value.name().toLowerCase(Locale.ROOT).replace('_', ' ');
     }
 }
