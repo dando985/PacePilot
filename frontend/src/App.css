@@ -1,3 +1,4 @@
+/* Theme */
 :root {
   --color-page: #f4f7f3;
   --color-surface: #ffffff;
@@ -8,6 +9,7 @@
   --color-primary-hover: #194c34;
 }
 
+/* Page defaults */
 *,
 *::before,
 *::after {
@@ -27,15 +29,27 @@ html body {
 }
 
 #root {
+  display: block;
   width: 100%;
+  max-width: 100%;
   min-height: 100vh;
+  margin: 0;
+  border: 0;
+  text-align: left;
 }
 
+/* App layout and header */
 .app {
+  width: 100%;
   max-width: 70rem;
   margin-inline: auto;
   padding: 3rem 1.5rem;
   text-align: left;
+}
+
+.app :is(h1, h2, h3, h4, h5) {
+  color: var(--color-text);
+  font-family: inherit;
 }
 
 .app-header {
@@ -62,6 +76,7 @@ html body {
   letter-spacing: -0.03em;
 }
 
+/* Buttons */
 .app button {
   min-height: 2.75rem;
   padding: 0.65rem 1.1rem;
@@ -91,7 +106,109 @@ html body {
   cursor: wait;
 }
 
-.app > p {
+/* Shared form styles */
+:is(.profile-form, .plan-generation-form) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  background-color: var(--color-surface);
+}
+
+:is(.profile-form, .plan-generation-form) > :is(h2, h3, p, button, [role]) {
+  grid-column: 1 / -1;
+}
+
+:is(.profile-form, .plan-generation-form) > :is(h2, h3) {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 1.35rem;
+  line-height: 1.3;
+}
+
+.plan-generation-form > p:not([role]) {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.95rem;
+}
+
+:is(.profile-form, .plan-generation-form) fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+}
+
+:is(.profile-form, .plan-generation-form) legend {
+  padding-inline: 0.4rem;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+:is(.profile-form, .plan-generation-form) fieldset p {
+  margin: 0 0 1rem;
+}
+
+:is(.profile-form, .plan-generation-form) fieldset p:last-child {
+  margin-bottom: 0;
+}
+
+:is(.profile-form, .plan-generation-form) label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+:is(.profile-form, .plan-generation-form) :is(input, select) {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #7d8d81;
+  border-radius: 0.5rem;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+:is(.profile-form, .plan-generation-form) :is(input, select):focus-visible {
+  border-color: var(--color-primary);
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+:is(.profile-form, .plan-generation-form) :is(input, select):disabled {
+  background-color: var(--color-page);
+  color: var(--color-muted);
+  cursor: wait;
+}
+
+:is(.profile-form, .plan-generation-form) small {
+  display: block;
+  margin-top: 0.4rem;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+:is(.profile-form, .plan-generation-form) > button {
+  justify-self: start;
+}
+
+/* Feedback messages */
+.app > p,
+.training-plans > p,
+:is(.profile-form, .plan-generation-form) > [role] {
   margin: 0;
   padding: 1rem 1.25rem;
   border: 1px solid var(--color-border);
@@ -107,6 +224,13 @@ html body {
   color: #8a2929;
 }
 
+:is(.profile-form, .plan-generation-form) > [role="status"] {
+  border-color: #b8d4c2;
+  background-color: #edf7ef;
+  color: var(--color-primary);
+}
+
+/* Athlete profiles */
 .profile-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
@@ -137,111 +261,8 @@ html body {
   color: var(--color-muted);
 }
 
-.profile-form {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: start;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  border: 1px solid var(--color-border);
-  border-radius: 1rem;
-  background-color: var(--color-surface);
-}
-
-.profile-form > h2,
-.profile-form > button,
-.profile-form > [role] {
-  grid-column: 1 / -1;
-}
-
-.profile-form > h2 {
-  margin: 0;
-  font-size: 1.35rem;
-}
-
-.profile-form fieldset {
-  min-width: 0;
-  margin: 0;
-  padding: 1.25rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
-}
-
-.profile-form legend {
-  padding-inline: 0.4rem;
-  color: var(--color-text);
-  font-weight: 600;
-}
-
-.profile-form fieldset p {
-  margin: 0 0 1rem;
-}
-
-.profile-form fieldset p:last-child {
-  margin-bottom: 0;
-}
-
-.profile-form label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  color: var(--color-muted);
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.profile-form input,
-.profile-form select {
-  width: 100%;
-  min-width: 0;
-  min-height: 2.75rem;
-  padding: 0.65rem 0.75rem;
-  border: 1px solid #7d8d81;
-  border-radius: 0.5rem;
-  background-color: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  font-size: 1rem;
-  font-weight: 400;
-}
-
-.profile-form input:focus-visible,
-.profile-form select:focus-visible {
-  border-color: var(--color-primary);
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-.profile-form input:disabled,
-.profile-form select:disabled {
-  background-color: var(--color-page);
-  color: var(--color-muted);
-  cursor: wait;
-}
-
-.profile-form > button {
-  justify-self: start;
-}
-
-.profile-form > [role] {
-  margin: 0;
-  padding: 1rem 1.25rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
-  overflow-wrap: anywhere;
-}
-
-.profile-form > [role="alert"] {
-  border-color: #ebc4c4;
-  background-color: #fff1f1;
-  color: #8a2929;
-}
-
-.profile-form > [role="status"] {
-  border-color: #b8d4c2;
-  background-color: #edf7ef;
-  color: var(--color-primary);
+.profile-card p + p {
+  margin-top: 0.35rem;
 }
 
 .profile-card button {
@@ -263,6 +284,7 @@ html body {
   color: white;
 }
 
+/* Training plans */
 .training-plans {
   margin-top: 2.5rem;
   padding-top: 2rem;
@@ -280,22 +302,6 @@ html body {
 .training-plans-header h2 {
   margin: 0;
   font-size: 1.5rem;
-}
-
-.training-plans > p {
-  margin: 0;
-  padding: 1rem 1.25rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
-  background-color: var(--color-surface);
-  color: var(--color-muted);
-  overflow-wrap: anywhere;
-}
-
-.training-plans > [role="alert"] {
-  border-color: #ebc4c4;
-  background-color: #fff1f1;
-  color: #8a2929;
 }
 
 .plan-list {
@@ -320,6 +326,10 @@ html body {
 .plan-card > p {
   margin: 0;
   color: var(--color-muted);
+}
+
+.plan-card > p + p {
+  margin-top: 0.35rem;
 }
 
 .plan-card details {
@@ -359,6 +369,7 @@ html body {
   color: var(--color-muted);
 }
 
+/* Workouts */
 .workout-list {
   display: grid;
   gap: 0.75rem;
@@ -393,34 +404,21 @@ html body {
   white-space: pre-wrap;
 }
 
-@media (max-width: 600px) {
-  .training-plans-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .training-plans-header button,
-  .profile-card button {
-    width: 100%;
-  }
-
-  .plan-card {
-    padding: 1rem;
-  }
-}
-
-
+/* Mobile layout */
 @media (max-width: 600px) {
   .app {
     padding: 2rem 1rem;
   }
 
-  .app-header {
+  .app-header,
+  .training-plans-header {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .app-header button {
+  .app-header button,
+  .training-plans-header button,
+  .profile-card button {
     width: 100%;
   }
 
@@ -428,14 +426,17 @@ html body {
     grid-template-columns: 1fr;
   }
 
-  .profile-form {
+  :is(.profile-form, .plan-generation-form) {
     grid-template-columns: 1fr;
     padding: 1rem;
   }
 
-  .profile-form > button {
+  :is(.profile-form, .plan-generation-form) > button {
     width: 100%;
     justify-self: stretch;
   }
-}
 
+  .plan-card {
+    padding: 1rem;
+  }
+}
