@@ -1,5 +1,14 @@
 export type DistanceUnit = 'MILES' | 'KILOMETERS';
 
+export type WeightUnit = 'KILOGRAMS' | 'POUNDS';
+
+export type Gender =
+    | 'MALE'
+    | 'FEMALE'
+    | 'NON_BINARY'
+    | 'OTHER'
+    | 'PREFER_NOT_TO_SAY';
+
 export type ExperienceLevel =
     | 'BEGINNER'
     | 'INTERMEDIATE'
@@ -21,11 +30,11 @@ export interface FitnessGoal {
 export interface AthleteProfile {
     id: string;
     displayName: string;
+    birthDate: string;
+    weight: number;
+    weightUnit: WeightUnit;
+    gender: Gender;
     experienceLevel: ExperienceLevel;
-    availableTrainingDaysPerWeek: number;
-    currentWeeklyRunningDistance: number | null;
-    runningDistanceUnit: DistanceUnit | null;
-    goal: FitnessGoal;
 }
 
 export interface CreateFitnessGoalRequest {
@@ -36,11 +45,11 @@ export interface CreateFitnessGoalRequest {
 
 export interface CreateAthleteProfileRequest {
     displayName: string;
+    birthDate: string;
+    weight: number;
+    weightUnit: WeightUnit;
+    gender: Gender;
     experienceLevel: ExperienceLevel;
-    availableTrainingDaysPerWeek: number;
-    currentWeeklyRunningDistance?: number | null;
-    runningDistanceUnit?: DistanceUnit | null;
-    goal: CreateFitnessGoalRequest;
 }
 
 export type WorkoutType =
@@ -78,6 +87,9 @@ export interface TrainingPlan {
     name: string;
     startDate: string;
     endDate: string;
+    goal: FitnessGoal;
+    availableTrainingDaysPerWeek: number;
+    distanceUnit: DistanceUnit;
     weeks: TrainingWeek[];
 }
 
@@ -101,6 +113,9 @@ export interface CreateTrainingPlanRequest {
     name: string;
     startDate: string;
     endDate: string;
+    goal: CreateFitnessGoalRequest;
+    availableTrainingDaysPerWeek: number;
+    distanceUnit: DistanceUnit;
     weeks: CreateTrainingWeekRequest[];
 }
 
@@ -108,4 +123,7 @@ export interface GenerateTrainingPlanRequest {
     name: string;
     startDate: string;
     endDate: string;
+    goal: CreateFitnessGoalRequest;
+    availableTrainingDaysPerWeek: number;
+    distanceUnit: DistanceUnit;
 }
