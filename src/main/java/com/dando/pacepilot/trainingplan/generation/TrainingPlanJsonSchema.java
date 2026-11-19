@@ -1,70 +1,80 @@
 package com.dando.pacepilot.trainingplan.generation;
 
-import com.dando.pacepilot.shared.domain.DistanceUnit;
 import com.dando.pacepilot.trainingplan.domain.WorkoutType;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-// Builds a JSON schema for the training plan structure, which can be used for validation and documentation purposes.
+// Defines the active workout choices Ollama returns.
 @Component
 public class TrainingPlanJsonSchema {
 
-    public Map<String, Object> schema() {
-        return objectSchema(
-                Map.of(
-                        "name", stringSchema(),
-                        "startDate", dateSchema(),
-                        "endDate", dateSchema(),
-                        "weeks", arraySchema(weekSchema())
-                ),
-                List.of("name", "startDate", "endDate", "weeks")
-        );
-    }
+    public Map<String, Object> schema(int workoutCount, int maxDurationMinutes, int maxDistanceMeters) {
+        if (workoutCount < 0) {
+            throw new IllegalArgumentException("Workout count cannot be negative.");
+        }
 
-    private Map<String, Object> weekSchema() {
-        return objectSchema(
-                Map.of(
-                        "weekNumber", Map.of(
-                                "type", "integer",
-                                "minimum", 1
-                        ),
-                        "startDate", dateSchema(),
-                        "workouts", arraySchema(workoutSchema())
-                ),
-                List.of("weekNumber", "startDate", "workouts")
-        );
-    }
+        if (maxDurationMinutes < 1 || maxDistanceMeters < 1) {
+            throw new IllegalArgumentException("Workout target limits must be positive.");
+        }
 
-    private Map<String, Object> workoutSchema() {
-        return objectSchema(
-                Map.of(
-                        "scheduledDate", dateSchema(),
-                        "type", enumSchema(WorkoutType.values()),
-                        "title", stringSchema(),
-                        "targetDistance", nullableSchema(
-                                Map.of("type", "number", "exclusiveMinimum", 0)
-                        ),
-                        "distanceUnit", nullableSchema(
-                                enumSchema(DistanceUnit.values())
-                        ),
-                        "targetDurationMinutes", nullableSchema(
-                                Map.of("type", "integer", "minimum", 1)
-                        ),
-                        "instructions", stringSchema()
-                ),
-                List.of(
-                        "scheduledDate",
-                        "type",
-                        "title",
-                        "targetDistance",
-                        "distanceUnit",
-                        "targetDurationMinutes",
-                        "instructions"
+        WorkoutType[] activeTypes = Arrays.stream(WorkoutType.values())
+                .filter(type -> type != WorkoutType.REST)
+                .toArray(WorkoutType[]::new);
+
+        WorkoutType[] distanceTypes = {
+                WorkoutType.WALK,
+                WorkoutType.EASY_RUN,
+                WorkoutType.RECOVERY_RUN,
+                WorkoutType.LONG_RUN,
+                WorkoutType.TEMPO_RUN,
+                WorkoutType.INTERVALS,
+                WorkoutType.RACE
+        };
+
+        Map<String, Object> workout = Map.of(
+                "anyOf", List.of(
+                        workoutVariantSchema(activeTypes, "DURATION_MINUTES", maxDurationMinutes),
+                        workoutVariantSchema(distanceTypes, "DISTANCE_METERS", maxDistanceMeters)
                 )
         );
+
+        Map<String, Object> workouts = Map.of(
+                "type", "array",
+                "items", workout,
+                "minItems", workoutCount,
+                "maxItems", workoutCount
+        );
+
+        return objectSchema(Map.of("workouts", workouts), List.of("workouts"));
+    }
+
+    private Map<String, Object> workoutVariantSchema(WorkoutType[] types, String targetKind, int maximum) {
+        Map<String, Object> properties = new LinkedHashMap<>();
+
+        properties.put("type", enumSchema(types));
+
+        properties.put(
+                "targetKind",
+                Map.of(
+                        "type", "string",
+                        "enum", List.of(targetKind)
+                )
+        );
+
+        properties.put(
+                "targetValue",
+                Map.of(
+                        "type", "integer",
+                        "minimum", 1,
+                        "maximum", maximum
+                )
+        );
+
+        return objectSchema(properties, List.of("type", "targetKind", "targetValue"));
     }
 
     private Map<String, Object> objectSchema(Map<String, Object> properties, List<String> required) {
@@ -76,39 +86,12 @@ public class TrainingPlanJsonSchema {
         );
     }
 
-    private Map<String, Object> arraySchema(Map<String, Object> items) {
-        return Map.of(
-                "type", "array",
-                "items", items,
-                "minItems", 1
-        );
-    }
-
-    private Map<String, Object> stringSchema() {
-        return Map.of(
-                "type", "string",
-                "minLength", 1
-        );
-    }
-
-    private Map<String, Object> dateSchema() {
-        return Map.of(
-                "type", "string",
-                "format", "date"
-        );
-    }
-
-    private Map<String, Object> nullableSchema(Map<String, Object> valueSchema) {
-        return Map.of(
-                "anyOf", List.of(valueSchema, Map.of("type", "null"))
-        );
-    }
-
     private Map<String, Object> enumSchema(Enum<?>[] values) {
-        List<String> names = Arrays.stream(values)
-                .map(Enum::name)
-                .toList();
+        List<String> names = Arrays.stream(values).map(Enum::name).toList();
 
-        return Map.of("type", "string", "enum", names);
+        return Map.of(
+                "type", "string",
+                "enum", names
+        );
     }
 }
