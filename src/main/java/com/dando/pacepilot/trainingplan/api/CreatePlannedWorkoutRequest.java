@@ -17,4 +17,14 @@ public record CreatePlannedWorkoutRequest(
         @Positive Integer targetDurationMinutes,
         @NotBlank String instructions
 ) {
+    public CreatePlannedWorkoutRequest {
+        if (targetDistance != null && targetDistance == 0.0) {
+            targetDistance = null;
+            distanceUnit = null;
+        }
+
+        if (targetDurationMinutes != null && targetDurationMinutes == 0) {
+            targetDurationMinutes = null;
+        }
+    }
 }
