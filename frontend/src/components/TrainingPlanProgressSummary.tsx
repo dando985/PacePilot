@@ -62,11 +62,6 @@ export default function TrainingPlanProgressSummary(props: {plan: TrainingPlan; 
                     </dd>
                 </div>
             </dl>
-
-            <p className="plan-progress-note">
-                Rest days are excluded from completion. Totals use only recorded
-                measurements, including any activity logged on rest days.
-            </p>
         </section>
     );
 }
