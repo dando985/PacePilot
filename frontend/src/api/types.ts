@@ -52,6 +52,15 @@ export interface CreateAthleteProfileRequest {
     experienceLevel: ExperienceLevel;
 }
 
+export interface UpdateAthleteProfileRequest {
+    displayName: string;
+    birthDate: string;
+    weight: number;
+    weightUnit: WeightUnit;
+    gender: Gender;
+    experienceLevel: ExperienceLevel;
+}
+
 export type WorkoutType =
     | 'REST'
     | 'WALK'
