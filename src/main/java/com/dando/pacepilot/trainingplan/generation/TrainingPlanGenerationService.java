@@ -34,7 +34,7 @@ public class TrainingPlanGenerationService {
 
     private static final int RETRIEVAL_LIMIT = 3;
     private static final int MAX_ATTEMPTS = 2;
-    private static final int MAX_PLAN_DAYS = 12 * 7;
+    private static final int MAX_PLAN_DAYS = 26 * 7;
     private static final int MAX_DURATION_MINUTES = 360;
     private static final int MAX_DISTANCE_METERS = 50_000;
 

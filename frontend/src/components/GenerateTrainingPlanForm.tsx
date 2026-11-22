@@ -23,7 +23,7 @@ const distanceOptions: Option<DistanceUnit>[] = [
     {value: 'KILOMETERS', label: 'Kilometers'},
 ];
 
-const MAX_PLAN_DAYS = 12 * 7;
+const MAX_PLAN_DAYS = 26 * 7;
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
 type GenerationState =
