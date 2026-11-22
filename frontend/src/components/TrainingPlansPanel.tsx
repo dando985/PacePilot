@@ -5,6 +5,7 @@ import {getWorkoutLogs} from '../api/workoutLogs';
 import CreateWorkoutLogForm from './CreateWorkoutLogForm';
 import GenerateTrainingPlanForm from './GenerateTrainingPlanForm';
 import TrainingAssistantPanel from './TrainingAssistantPanel';
+import TrainingPlanProgressSummary from './TrainingPlanProgressSummary';
 import {ApiError} from '../api/client';
 
 import type {DistanceUnit, GoalType, TrainingPlan, WorkoutLog} from '../api/types';
@@ -137,6 +138,8 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                                 <p>
                                     Preferred distance unit: {distanceLabels[plan.distanceUnit]}
                                 </p>
+
+                                <TrainingPlanProgressSummary plan={plan} logs={planState.logs}/>
 
                                 <details>
                                     <summary>View workouts</summary>
