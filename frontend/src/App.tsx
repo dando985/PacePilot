@@ -3,6 +3,7 @@ import {useEffect, useState} from 'react';
 import {getAthleteProfiles} from './api/athletes';
 import {ApiError} from './api/client';
 import CreateAthleteProfileForm from './components/CreateAthleteProfileForm';
+import EditAthleteProfileForm from './components/EditAthleteProfileForm';
 import TrainingPlansPanel from './components/TrainingPlansPanel';
 
 import type {AthleteProfile, ExperienceLevel, Gender} from './api/types';
@@ -29,9 +30,11 @@ const experienceLabels: Record<ExperienceLevel, string> = {
 };
 
 export default function App() {
-  const [profileState, setProfileState] = useState<ProfileState>({status: 'loading',});
+  const [profileState, setProfileState] = useState<ProfileState>({status: 'loading'});
   const [reloadCount, setReloadCount] = useState(0);
-  const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null,);
+  const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
+  const [editingAthleteId, setEditingAthleteId] = useState<string | null>(null);
+  const [profileMessage, setProfileMessage] = useState<string | null>(null);
 
   // Load athlete profiles when the component mounts or when reloadCount changes.
   useEffect(() => {
@@ -46,9 +49,13 @@ export default function App() {
         if (!controller.signal.aborted) {
           setProfileState({status: 'success', profiles,});
 
+          // Ensure that the selected and editing athlete IDs are still valid after reloading profiles.
           setSelectedAthleteId((currentId) =>
-              profiles.some((profile) => profile.id === currentId)
-                  ? currentId : null
+              profiles.some((profile) => profile.id === currentId) ? currentId : null
+          );
+
+          setEditingAthleteId((currentId) =>
+              profiles.some((profile) => profile.id === currentId) ? currentId : null
           );
         }
       } catch (error: unknown) {
@@ -71,9 +78,37 @@ export default function App() {
 
   // Function to reload athlete profiles by incrementing the reloadCount state.
   function reloadProfiles() {
-    setProfileState({ status: 'loading' });
+    setEditingAthleteId(null);
+    setProfileMessage(null);
+    setProfileState({status: 'loading'});
     setReloadCount((count) => count + 1);
   }
+
+  function startEditingProfile(athleteId: string) {
+    setProfileMessage(null);
+    setEditingAthleteId(athleteId);
+  }
+
+  function handleProfileUpdated(updatedProfile: AthleteProfile) {
+    setProfileState((current) => {
+      if (current.status !== 'success') {
+        return current;
+      }
+
+      return {
+        ...current,
+        profiles: current.profiles.map((profile) => profile.id === updatedProfile.id ? updatedProfile : profile)
+      };
+    });
+
+    setEditingAthleteId((currentId) => currentId === updatedProfile.id ? null : currentId);
+
+    setProfileMessage(`Updated profile for ${updatedProfile.displayName}.`);
+    setReloadCount((count) => count + 1);
+  }
+
+  const editingProfile = profileState.status === 'success'
+      ? profileState.profiles.find((profile) => profile.id === editingAthleteId) : undefined;
 
   return (
       <main className="app">
@@ -89,6 +124,8 @@ export default function App() {
         </header>
 
         <CreateAthleteProfileForm onCreated={reloadProfiles}/>
+
+        {profileMessage !== null && (<p role="status" className="profile-update-message">{profileMessage}</p>)}
 
         {profileState.status === 'loading' && (<p role="status">Loading athlete profiles...</p>)}
 
@@ -121,17 +158,27 @@ export default function App() {
                           Experience: {experienceLabels[profile.experienceLevel]}
                         </p>
 
-                        <button
-                            type="button"
-                            onClick={() => setSelectedAthleteId(profile.id)}
-                            aria-pressed={selectedAthleteId === profile.id}
-                        >
-                          View training plans
-                        </button>
+                        <div className="profile-card-actions">
+                          <button type="button" onClick={() => startEditingProfile(profile.id)}>
+                            Edit profile
+                          </button>
+
+                          <button type="button" onClick={() => setSelectedAthleteId(profile.id)}
+                                  aria-pressed={selectedAthleteId === profile.id}
+                          >
+                            View training plans
+                          </button>
+                        </div>
                       </li>
                   ))}
                 </ul>
             )
+        )}
+
+        {editingProfile !== undefined && (
+            <EditAthleteProfileForm key={editingProfile.id} profile={editingProfile} onUpdated={handleProfileUpdated}
+                onCancel={() => setEditingAthleteId(null)}
+            />
         )}
 
         {selectedAthleteId !== null && (<TrainingPlansPanel key={selectedAthleteId} athleteId={selectedAthleteId}/>)}
