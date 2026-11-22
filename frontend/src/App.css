@@ -119,13 +119,11 @@ html body {
   background-color: var(--color-surface);
 }
 
-:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form)
-> :is(h2, h3, h6, p, button, [role]) {
+:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form) > :is(h2, h3, h6, p, button, [role]) {
   grid-column: 1 / -1;
 }
 
-:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form)
-> :is(h2, h3, h6) {
+:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form) > :is(h2, h3, h6) {
   margin: 0;
   color: var(--color-text);
   font-size: 1.35rem;
@@ -138,8 +136,7 @@ html body {
   font-size: 0.95rem;
 }
 
-:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form)
-fieldset {
+:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form) fieldset {
   min-width: 0;
   margin: 0;
   padding: 1.25rem;
@@ -147,25 +144,21 @@ fieldset {
   border-radius: 0.75rem;
 }
 
-:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form)
-legend {
+:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form) legend {
   padding-inline: 0.4rem;
   color: var(--color-text);
   font-weight: 600;
 }
 
-:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form)
-fieldset p {
+:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form) fieldset p {
   margin: 0 0 1rem;
 }
 
-:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form)
-fieldset p:last-child {
+:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form) fieldset p:last-child {
   margin-bottom: 0;
 }
 
-:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form)
-label,
+:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form) label,
 .assistant-plan-picker label {
   display: flex;
   flex-direction: column;
@@ -175,8 +168,7 @@ label,
   font-weight: 600;
 }
 
-:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form)
-:is(input, select, textarea),
+:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form) :is(input, select, textarea),
 .assistant-plan-picker select {
   width: 100%;
   min-width: 0;
@@ -191,30 +183,27 @@ label,
   font-weight: 400;
 }
 
-:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form)
-textarea {
+/* Notes can grow vertically while staying within the form. */
+:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form) textarea {
   min-height: 6rem;
   resize: vertical;
 }
 
-:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form)
-:is(input, select, textarea):focus-visible,
+:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form) :is(input, select, textarea):focus-visible,
 .assistant-plan-picker select:focus-visible {
   border-color: var(--color-primary);
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
-:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form)
-:is(input, select, textarea):disabled,
+:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form) :is(input, select, textarea):disabled,
 .assistant-plan-picker select:disabled {
   background-color: var(--color-page);
   color: var(--color-muted);
   cursor: wait;
 }
 
-:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form)
-small {
+:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form) small {
   display: block;
   margin-top: 0.4rem;
   color: var(--color-muted);
@@ -222,16 +211,14 @@ small {
   line-height: 1.5;
 }
 
-:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form)
-> button {
+:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form) > button {
   justify-self: start;
 }
 
 /* Feedback messages */
 .app > p,
 .training-plans > p,
-:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form)
-> [role] {
+:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form) > [role] {
   margin: 0;
   padding: 1rem 1.25rem;
   border: 1px solid var(--color-border);
@@ -247,8 +234,7 @@ small {
   color: #8a2929;
 }
 
-:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form)
-> [role="status"] {
+:is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form) > [role="status"] {
   border-color: #b8d4c2;
   background-color: #edf7ef;
   color: var(--color-primary);
@@ -394,6 +380,89 @@ small {
 .plan-week > p {
   margin: 0.25rem 0 1rem;
   color: var(--color-muted);
+}
+
+/* Plan progress */
+.plan-progress {
+  min-width: 0;
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background-color: var(--color-page);
+}
+
+.plan-progress > h4 {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+  line-height: 1.4;
+}
+
+.plan-progress > p {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.plan-progress > .plan-progress-completion {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.plan-progress > progress {
+  display: block;
+  width: 100%;
+  height: 0.85rem;
+  margin-top: 0.75rem;
+  accent-color: var(--color-primary);
+}
+
+.plan-progress-totals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.plan-progress-totals > div {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.65rem;
+  background-color: var(--color-surface);
+}
+
+.plan-progress-totals dt {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.plan-progress-totals dd {
+  margin: 0.35rem 0 0;
+}
+
+.plan-progress-value {
+  display: block;
+  color: var(--color-text);
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+}
+
+.plan-progress-totals small {
+  display: block;
+  margin-top: 0.4rem;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.plan-progress > .plan-progress-note {
+  margin-top: 0.85rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
 }
 
 /* Workouts */
@@ -604,7 +673,8 @@ small {
     width: 100%;
   }
 
-  .profile-list {
+  .profile-list,
+  .plan-progress-totals {
     grid-template-columns: 1fr;
   }
 
@@ -613,13 +683,13 @@ small {
     padding: 1rem;
   }
 
-  :is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form)
-  > button {
+  :is(.profile-form, .plan-generation-form, .workout-log-form, .assistant-form) > button {
     width: 100%;
     justify-self: stretch;
   }
 
   .plan-card,
+  .plan-progress,
   .training-assistant,
   .assistant-answer {
     padding: 1rem;
