@@ -127,3 +127,22 @@ export interface GenerateTrainingPlanRequest {
     availableTrainingDaysPerWeek: number;
     distanceUnit: DistanceUnit;
 }
+
+export interface WorkoutLog {
+    id: string;
+    athleteProfileId: string;
+    plannedWorkoutId: string;
+    completedDate: string;
+    actualDistance: number | null;
+    distanceUnit: DistanceUnit | null;
+    actualDurationMinutes: number | null;
+    notes: string | null;
+}
+
+export interface CreateWorkoutLogRequest {
+    completedDate: string;
+    actualDistance?: number | null;
+    distanceUnit?: DistanceUnit | null;
+    actualDurationMinutes?: number | null;
+    notes?: string | null;
+}

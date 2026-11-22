@@ -1,14 +1,16 @@
 import {useEffect, useState} from 'react';
 
 import {getTrainingPlans} from '../api/trainingPlans';
+import {getWorkoutLogs} from '../api/workoutLogs';
+import CreateWorkoutLogForm from './CreateWorkoutLogForm';
 import GenerateTrainingPlanForm from './GenerateTrainingPlanForm';
 import {ApiError} from '../api/client';
 
-import type {DistanceUnit, GoalType, TrainingPlan} from '../api/types';
+import type {DistanceUnit, GoalType, TrainingPlan, WorkoutLog} from '../api/types';
 
 type PlanState =
     | {status: 'loading'}
-    | {status: 'success'; plans: TrainingPlan[]}
+    | {status: 'success'; plans: TrainingPlan[]; logs: WorkoutLog[]}
     | {status: 'error'; message: string};
 
 const goalLabels: Record<GoalType, string> = {
@@ -31,34 +33,64 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
     useEffect(() => {
         const controller = new AbortController();
 
-        async function loadPlans() {
+        async function loadPlansAndLogs() {
             try {
-                const plans = await getTrainingPlans(props.athleteId, controller.signal,);
+                const [plans, logs] = await Promise.all([
+                    getTrainingPlans(props.athleteId, controller.signal),
+                    getWorkoutLogs(props.athleteId, controller.signal),
+                ]);
 
                 if (!controller.signal.aborted) {
-                    setPlanState({status: 'success', plans,});
+                    setPlanState({status: 'success', plans, logs});
                 }
             } catch (error: unknown) {
                 if (controller.signal.aborted) {
                     return;
                 }
 
-                setPlanState({status: 'error', message: error instanceof ApiError ? error.message : 'Unable to load training plans. Please try again.',});
+                setPlanState({
+                    status: 'error',
+                    message: error instanceof ApiError ? error.message : 'Unable to load training plans and workout logs. Please try again.',
+                });
             }
         }
 
-        // Call the function to load training plans.
-        void loadPlans();
+        void loadPlansAndLogs();
 
-        // Cleanup function to abort the fetch request if the component unmounts or reloadCount changes.
         return () => {controller.abort();};
-
-        // Load training plans when the component mounts or when props.athleteId or reloadCount changes.
     }, [props.athleteId, reloadCount]);
 
     function reloadPlans() {
         setPlanState({ status: 'loading' });
         setReloadCount((count) => count + 1);
+    }
+
+    function handleLogCreated(log: WorkoutLog) {
+        setPlanState((current) => {
+            if (current.status !== 'success') {
+                return current;
+            }
+
+            return {
+                ...current,
+                logs: [
+                    ...current.logs.filter(
+                        (existing) => existing.plannedWorkoutId !== log.plannedWorkoutId
+                    ),
+                    log,
+                ],
+            };
+        });
+
+        setReloadCount((count) => count + 1);
+    }
+
+    const logsByWorkoutId = new Map<string, WorkoutLog>();
+
+    if (planState.status === 'success') {
+        for (const log of planState.logs) {
+            logsByWorkoutId.set(log.plannedWorkoutId, log);
+        }
     }
 
     return (
@@ -73,14 +105,13 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
 
             <GenerateTrainingPlanForm athleteId={props.athleteId} onGenerated={reloadPlans}/>
 
-            {planState.status === 'loading' && (<p role="status">Loading training plans...</p>)}
+            {planState.status === 'loading' && (<p role="status">Loading training plans and workout logs...</p>)}
 
             {planState.status === 'error' && (<p role="alert">{planState.message}</p>)}
 
             {planState.status === 'success' && (
-                planState.plans.length === 0 ? (
-                    <p>No training plans yet for this athlete.</p>
-                ) : (
+                planState.plans.length === 0 ?
+                    (<p>No training plans yet for this athlete.</p>) : (
                     <div className="plan-list">
                         {planState.plans.map((plan) => (
                             <article key={plan.id} className="plan-card">
@@ -115,30 +146,74 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                                             <p>Starts {week.startDate}</p>
 
                                             <ul className="workout-list">
-                                                {week.workouts.map((workout) => (
-                                                    <li key={workout.id}>
-                                                        <h5>{workout.title}</h5>
-                                                        <p>{workout.scheduledDate}</p>
+                                                {week.workouts.map((workout) => {
+                                                    const log = logsByWorkoutId.get(workout.id);
 
-                                                        {workout.targetDistance !== null &&
-                                                            workout.distanceUnit !== null && (
+                                                    return (
+                                                        <li key={workout.id}>
+                                                            <h5>{workout.title}</h5>
+                                                            <p>Scheduled: {workout.scheduledDate}</p>
+
+                                                            <p className="workout-status">
+                                                                {log ? 'Completed' : 'Not logged'}
+                                                            </p>
+
+                                                            {workout.targetDistance !== null &&
+                                                                workout.distanceUnit !== null && (
+                                                                    <p>
+                                                                        Planned distance: {workout.targetDistance}{' '}
+                                                                        {workout.distanceUnit === 'MILES' ? 'mi' : 'km'}
+                                                                    </p>
+                                                                )}
+
+                                                            {workout.targetDurationMinutes !== null && (
                                                                 <p>
-                                                                    Distance: {workout.targetDistance}{' '}
-                                                                    {workout.distanceUnit === 'MILES' ? 'mi' : 'km'}
+                                                                    Planned duration: {workout.targetDurationMinutes} min
                                                                 </p>
                                                             )}
 
-                                                        {workout.targetDurationMinutes !== null && (
-                                                            <p>
-                                                                Duration: {workout.targetDurationMinutes} min
+                                                            <p className="workout-instructions">
+                                                                {workout.instructions}
                                                             </p>
-                                                        )}
 
-                                                        <p className="workout-instructions">
-                                                            {workout.instructions}
-                                                        </p>
-                                                    </li>
-                                                ))}
+                                                            {log ? (
+                                                                <div className="workout-log">
+                                                                    <h6>Completion details</h6>
+                                                                    <p>Completed: {log.completedDate}</p>
+
+                                                                    {log.actualDistance !== null &&
+                                                                        log.distanceUnit !== null && (
+                                                                            <p>
+                                                                                Actual distance: {log.actualDistance}{' '}
+                                                                                {log.distanceUnit === 'MILES' ? 'mi' : 'km'}
+                                                                            </p>
+                                                                        )}
+
+                                                                    {log.actualDurationMinutes !== null && (
+                                                                        <p>
+                                                                            Actual duration: {log.actualDurationMinutes} min
+                                                                        </p>
+                                                                    )}
+
+                                                                    {log.notes !== null && (
+                                                                        <p className="workout-log-notes">
+                                                                            Notes: {log.notes}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                <details className="workout-log-details">
+                                                                    <summary>Log workout</summary>
+                                                                    <CreateWorkoutLogForm
+                                                                        planId={plan.id}
+                                                                        workoutId={workout.id}
+                                                                        onCreated={handleLogCreated}
+                                                                    />
+                                                                </details>
+                                                            )}
+                                                        </li>
+                                                    );
+                                                })}
                                             </ul>
                                         </section>
                                     ))}
