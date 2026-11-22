@@ -30,6 +30,16 @@ public class PostgresTrainingPlanRepository implements TrainingPlanRepository {
     }
 
     @Override
+    @Transactional
+    public Optional<TrainingPlan> rename(UUID planId, String newName) {
+        return jpaRepository.findById(planId)
+                .map(entity -> {
+                    entity.rename(newName);
+                    return toDomain(entity);
+                });
+    }
+
+    @Override
     public Optional<TrainingPlan> findById(UUID id) {
         return jpaRepository.findById(id).map(this::toDomain);
     }

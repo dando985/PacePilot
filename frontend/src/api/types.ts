@@ -177,3 +177,7 @@ export interface TrainingAnswer {
     answer: string;
     sources: TrainingAnswerSource[];
 }
+
+export interface RenameTrainingPlanRequest {
+    name: string;
+}

@@ -97,6 +97,14 @@ public class TrainingPlanEntity {
         return name;
     }
 
+    public void rename(String newName) {
+        if (newName == null || newName.isBlank()) {
+            throw new IllegalArgumentException("Training plan name is required.");
+        }
+
+        this.name = newName.strip();
+    }
+
     public LocalDate getStartDate() {
         return startDate;
     }
