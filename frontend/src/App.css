@@ -459,12 +459,6 @@ html body {
   line-height: 1.5;
 }
 
-.plan-progress > .plan-progress-note {
-  margin-top: 0.85rem;
-  font-size: 0.85rem;
-  line-height: 1.5;
-}
-
 /* Workouts */
 .workout-list {
   display: grid;
