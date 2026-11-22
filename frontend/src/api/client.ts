@@ -3,7 +3,7 @@
 
 const API_BASE_URL = '/api';
 
-type ApiRequestOptions = Omit<RequestInit, 'body'> & { body?: unknown; };
+type ApiRequestOptions = Omit<RequestInit, 'body'> & {body?: unknown;};
 
 export class ApiError extends Error {
     readonly status: number;
@@ -15,9 +15,9 @@ export class ApiError extends Error {
     }
 }
 
-export async function apiRequest<T>(path: string, options: ApiRequestOptions = {},): Promise<T> {
+export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
     // Destructure the options to separate the body and headers (renamed to providedHeaders) from other request options.
-    const { body, headers: providedHeaders, ...requestOptions } = options;
+    const {body, headers: providedHeaders, ...requestOptions} = options;
 
     const headers = new Headers(providedHeaders);
 
@@ -31,7 +31,7 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
 
     const response = await fetch(`${API_BASE_URL}${path}`, {
         ...requestOptions,
-        headers,
+        headers: headers,
         body: body === undefined ? undefined : JSON.stringify(body),
     });
 
