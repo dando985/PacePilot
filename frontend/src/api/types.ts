@@ -146,3 +146,25 @@ export interface CreateWorkoutLogRequest {
     actualDurationMinutes?: number | null;
     notes?: string | null;
 }
+
+export interface AskTrainingAssistantRequest {
+    athleteProfileId: string;
+    question: string;
+    trainingPlanId?: string | null;
+}
+
+export interface TrainingAnswerSource {
+    citationNumber: number;
+    chunkId: string;
+    documentTitle: string | null;
+    sectionTitle: string | null;
+    source: string | null;
+    content: string;
+    similarity: number;
+}
+
+export interface TrainingAnswer {
+    question: string;
+    answer: string;
+    sources: TrainingAnswerSource[];
+}

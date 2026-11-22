@@ -4,6 +4,7 @@ import {getTrainingPlans} from '../api/trainingPlans';
 import {getWorkoutLogs} from '../api/workoutLogs';
 import CreateWorkoutLogForm from './CreateWorkoutLogForm';
 import GenerateTrainingPlanForm from './GenerateTrainingPlanForm';
+import TrainingAssistantPanel from './TrainingAssistantPanel';
 import {ApiError} from '../api/client';
 
 import type {DistanceUnit, GoalType, TrainingPlan, WorkoutLog} from '../api/types';
@@ -223,6 +224,8 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                     </div>
                 )
             )}
+
+            {planState.status === 'success' && (<TrainingAssistantPanel athleteId={props.athleteId} plans={planState.plans}/>)}
         </section>
     );
 }
