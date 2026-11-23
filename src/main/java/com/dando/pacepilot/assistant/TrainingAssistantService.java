@@ -7,6 +7,8 @@ import com.dando.pacepilot.retrieval.SemanticRetriever;
 import com.dando.pacepilot.retrieval.SemanticSearchResult;
 import com.dando.pacepilot.trainingplan.domain.TrainingPlan;
 import com.dando.pacepilot.trainingplan.service.TrainingPlanService;
+import com.dando.pacepilot.workoutlog.domain.WorkoutLog;
+import com.dando.pacepilot.workoutlog.service.WorkoutLogService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,11 +20,9 @@ public class TrainingAssistantService {
 
     private static final int RETRIEVAL_LIMIT = 3;
 
-    private static final String NO_KNOWLEDGE_MESSAGE =
-            "I could not find enough information in the PacePilot training knowledge to answer that question.";
-
     private final AthleteProfileService profileService;
     private final TrainingPlanService planService;
+    private final WorkoutLogService workoutLogService;
     private final SemanticRetriever semanticRetriever;
     private final TextGenerationProvider generationProvider;
     private final TrainingAssistantPromptBuilder promptBuilder;
@@ -30,12 +30,14 @@ public class TrainingAssistantService {
     public TrainingAssistantService(
             AthleteProfileService profileService,
             TrainingPlanService planService,
+            WorkoutLogService workoutLogService,
             SemanticRetriever semanticRetriever,
             TextGenerationProvider generationProvider,
             TrainingAssistantPromptBuilder promptBuilder
     ) {
         this.profileService = profileService;
         this.planService = planService;
+        this.workoutLogService = workoutLogService;
         this.semanticRetriever = semanticRetriever;
         this.generationProvider = generationProvider;
         this.promptBuilder = promptBuilder;
@@ -48,6 +50,7 @@ public class TrainingAssistantService {
         AthleteProfile profile = profileService.getProfileById(athleteProfileId);
 
         TrainingPlan plan = null;
+        List<WorkoutLog> logs = List.of();
 
         if (trainingPlanId != null) {
             plan = planService.getPlanById(trainingPlanId);
@@ -55,24 +58,20 @@ public class TrainingAssistantService {
             if (!plan.athleteProfileId().equals(athleteProfileId)) {
                 throw new IllegalArgumentException("Selected training plan must belong to the athlete.");
             }
+
+            // Load athlete's workout logs from the training plan
+            logs = workoutLogService.findLogsForPlan(plan);
         }
 
         // retrieve relevant knowledge passages from the semantic retriever
         List<SemanticSearchResult> results = semanticRetriever.search(question, RETRIEVAL_LIMIT);
 
-        if (results.isEmpty()) {
-            return new TrainingAnswer(
-                    question,
-                    NO_KNOWLEDGE_MESSAGE,
-                    List.of()
-            );
-        }
 
         // build the system prompt for the LLM
         String systemMessage = promptBuilder.buildSystemMessage();
 
-        // build the user prompt for the LLM
-        String userMessage = promptBuilder.buildUserMessage(question, profile, plan, results);
+        // build the user prompt for the LLM; includes athelte's unique info
+        String userMessage = promptBuilder.buildUserMessage(question, profile, plan, logs, results);
 
         // generate the answer using the LLM
         String generatedAnswer = generationProvider.generate(systemMessage, userMessage);
