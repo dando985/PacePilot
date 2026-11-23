@@ -268,6 +268,10 @@ html body {
   color: var(--color-primary);
 }
 
+.training-plans > [role] {
+  margin-bottom: 1.25rem;
+}
+
 /* Athlete profiles */
 .profile-list {
   display: grid;
@@ -365,6 +369,10 @@ html body {
   overflow-wrap: anywhere;
 }
 
+.plan-card[data-archived="true"] {
+  border-style: dashed;
+}
+
 .plan-card-header {
   display: flex;
   align-items: center;
@@ -449,6 +457,76 @@ html body {
 
 .plan-rename-form > p:not([role]) {
   margin: 0;
+}
+
+/* Plan archiving */
+.training-plans > .plan-archive-filter {
+  margin: 0 0 1.25rem;
+  padding: 0.65rem 1rem;
+}
+
+.plan-archive-filter label {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 2.75rem;
+  color: var(--color-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.plan-archive-filter input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.plan-archive-filter input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.plan-archive-filter input[type="checkbox"]:disabled {
+  cursor: wait;
+}
+
+.plan-archive-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.65rem;
+  background-color: var(--color-page);
+}
+
+.plan-archive-actions > p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.plan-archive-actions > button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.plan-archive-actions > button:not(:disabled) {
+  background-color: var(--color-surface);
+  color: var(--color-primary);
+}
+
+.plan-archive-actions > button:hover:not(:disabled) {
+  border-color: var(--color-primary-hover);
+  background-color: #edf7ef;
 }
 
 /* Plan progress */
@@ -758,6 +836,7 @@ html body {
   .profile-card-actions,
   .profile-form-actions,
   .plan-form-actions,
+  .plan-archive-actions,
   .workout-log-form-actions {
     flex-direction: column;
     align-items: stretch;
@@ -768,6 +847,7 @@ html body {
   .profile-card button,
   .profile-form-actions > button,
   .plan-form-actions > button,
+  .plan-archive-actions > button,
   .workout-log-form-actions > button {
     width: 100%;
   }

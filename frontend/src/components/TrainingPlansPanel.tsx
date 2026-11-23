@@ -1,6 +1,6 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
-import {getTrainingPlans} from '../api/trainingPlans';
+import {getTrainingPlans, setTrainingPlanArchived} from '../api/trainingPlans';
 import {getWorkoutLogs} from '../api/workoutLogs';
 import CreateWorkoutLogForm from './CreateWorkoutLogForm';
 import EditWorkoutLogForm from './EditWorkoutLogForm';
@@ -15,6 +15,11 @@ import type {DistanceUnit, GoalType, TrainingPlan, WorkoutLog} from '../api/type
 type PlanState =
     | {status: 'loading'}
     | {status: 'success'; plans: TrainingPlan[]; logs: WorkoutLog[]}
+    | {status: 'error'; message: string};
+
+type ArchiveState =
+    | {status: 'idle'}
+    | {status: 'saving'; planId: string}
     | {status: 'error'; message: string};
 
 const goalLabels: Record<GoalType, string> = {
@@ -36,6 +41,11 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
     const [renamingPlanId, setRenamingPlanId] = useState<string | null>(null);
     const [editingLogId, setEditingLogId] = useState<string | null>(null);
     const [planMessage, setPlanMessage] = useState<string | null>(null);
+    const [showArchived, setShowArchived] = useState(false);
+    const [archiveState, setArchiveState] = useState<ArchiveState>({status: 'idle'});
+
+    const archivePending = useRef(false);
+    const archiving = archiveState.status === 'saving';
 
     useEffect(() => {
         const controller = new AbortController();
@@ -79,11 +89,17 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
         setRenamingPlanId(null);
         setEditingLogId(null);
         setPlanMessage(null);
+        setArchiveState((current) =>
+            current.status === 'saving' ? current : {status: 'idle'}
+        );
         setPlanState({status: 'loading'});
         setReloadCount((count) => count + 1);
     }
 
     function startRenamingPlan(planId: string) {
+        if (archivePending.current) {
+            return;
+        }
         setPlanMessage(null);
         setRenamingPlanId(planId);
     }
@@ -112,6 +128,55 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
         setReloadCount((count) => count + 1);
     }
 
+    async function handleArchiveChange(plan: TrainingPlan) {
+        if (archivePending.current || renamingPlanId === plan.id) {
+            return;
+        }
+
+        archivePending.current = true;
+        setPlanMessage(null);
+        setArchiveState({status: 'saving', planId: plan.id});
+
+        let updatedPlan: TrainingPlan;
+
+        try {
+            updatedPlan = await setTrainingPlanArchived(plan.id, {archived: !plan.archived,});
+        } catch (error: unknown) {
+            setArchiveState({
+                status: 'error',
+                message:
+                    error instanceof ApiError
+                        ? error.message
+                        : 'Unable to confirm the archive change. Refresh training plans to check its status.',
+            });
+
+            return;
+        } finally {
+            archivePending.current = false;
+        }
+
+        setPlanState((current) => {
+            if (current.status !== 'success') {
+                return current;
+            }
+
+            return {
+                ...current,
+                plans: current.plans.map((existing) =>
+                    existing.id === updatedPlan.id ? updatedPlan : existing
+                ),
+            };
+        });
+
+        setArchiveState({status: 'idle'});
+
+        setPlanMessage(
+            `${updatedPlan.archived ? 'Archived' : 'Restored'} ${updatedPlan.name}.`
+        );
+
+        setReloadCount((count) => count + 1);
+    }
+
     function handleLogSaved(log: WorkoutLog) {
         setPlanState((current) => {
             if (current.status !== 'success') {
@@ -135,6 +200,9 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
         setReloadCount((count) => count + 1);
     }
 
+    const visiblePlans = planState.status === 'success'
+        ? planState.plans.filter((plan) => showArchived || !plan.archived) : [];
+
     const logsByWorkoutId = new Map<string, WorkoutLog>();
 
     if (planState.status === 'success') {
@@ -148,12 +216,19 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
             <header className="training-plans-header">
                 <h2>Training plans</h2>
 
-                <button type="button" onClick={reloadPlans} disabled={planState.status === 'loading'}>
+                <button
+                    type="button"
+                    onClick={reloadPlans}
+                    disabled={planState.status === 'loading' || archiving}
+                >
                     {planState.status === 'error' ? 'Retry' : 'Refresh'}
                 </button>
             </header>
 
-            <GenerateTrainingPlanForm athleteId={props.athleteId} onGenerated={reloadPlans}/>
+            <GenerateTrainingPlanForm
+                athleteId={props.athleteId}
+                onGenerated={reloadPlans}
+            />
 
             {planMessage !== null && (
                 <p role="status" className="plan-update-message">
@@ -161,21 +236,53 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                 </p>
             )}
 
-            {planState.status === 'loading' && (<p role="status">Loading training plans and workout logs...</p>)}
+            {archiveState.status === 'saving' && (
+                <p role="status">Updating plan archive status...</p>
+            )}
 
-            {planState.status === 'error' && (<p role="alert">{planState.message}</p>)}
+            {archiveState.status === 'error' && (
+                <p role="alert">{archiveState.message}</p>
+            )}
+
+            {planState.status === 'success' && planState.plans.length > 0 && (
+                <p className="plan-archive-filter">
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={showArchived}
+                            onChange={(event) => setShowArchived(event.currentTarget.checked)}
+                            disabled={archiving}
+                        />
+                        Show archived plans
+                    </label>
+                </p>
+            )}
+
+            {planState.status === 'loading' && (
+                <p role="status">Loading training plans and workout logs...</p>
+            )}
+
+            {planState.status === 'error' && (
+                <p role="alert">{planState.message}</p>
+            )}
 
             {planState.status === 'success' && (
-                planState.plans.length === 0 ? (
-                    <p>No training plans yet for this athlete.</p>
+                visiblePlans.length === 0 ? (
+                    <p>
+                        {planState.plans.length === 0
+                            ? 'No training plans yet for this athlete.'
+                            : 'No active training plans. Select "Show archived plans" to view or restore archived plans.'}
+                    </p>
                 ) : (
                     <div className="plan-list">
-                        {planState.plans.map((plan) => (
-                            <article key={plan.id} className="plan-card">
+                        {visiblePlans.map((plan) => (
+                            <article key={plan.id} className="plan-card" data-archived={plan.archived}>
                                 <header className="plan-card-header">
                                     <h3>{plan.name}</h3>
 
-                                    <button type="button" onClick={() => startRenamingPlan(plan.id)}>
+                                    <button type="button" onClick={() => startRenamingPlan(plan.id)}
+                                        disabled={archiving}
+                                    >
                                         Rename plan
                                     </button>
                                 </header>
@@ -185,6 +292,19 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                                         onCancel={() => setRenamingPlanId(null)}
                                     />
                                 )}
+
+                                <div className="plan-archive-actions">
+                                    <p>Status: {plan.archived ? 'Archived' : 'Active'}</p>
+
+                                    <button type="button" onClick={() => {void handleArchiveChange(plan);}}
+                                        disabled={archiving || renamingPlanId === plan.id}
+                                    >
+                                        {archiveState.status === 'saving' &&
+                                        archiveState.planId === plan.id
+                                            ? (plan.archived ? 'Restoring...' : 'Archiving...')
+                                            : (plan.archived ? 'Restore plan' : 'Archive plan')}
+                                    </button>
+                                </div>
 
                                 <p>{plan.startDate} – {plan.endDate}</p>
 
@@ -206,7 +326,10 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                                     Preferred distance unit: {distanceLabels[plan.distanceUnit]}
                                 </p>
 
-                                <TrainingPlanProgressSummary plan={plan} logs={planState.logs}/>
+                                <TrainingPlanProgressSummary
+                                    plan={plan}
+                                    logs={planState.logs}
+                                />
 
                                 <details>
                                     <summary>View workouts</summary>
@@ -250,9 +373,7 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                                                             {log ? (
                                                                 <div className="workout-log">
                                                                     {editingLogId === log.id ? (
-                                                                        <EditWorkoutLogForm
-                                                                            key={log.id}
-                                                                            log={log}
+                                                                        <EditWorkoutLogForm key={log.id} log={log}
                                                                             onUpdated={handleLogSaved}
                                                                             onCancel={() => setEditingLogId(null)}
                                                                         />
@@ -297,6 +418,7 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                                                             ) : (
                                                                 <details className="workout-log-details">
                                                                     <summary>Log workout</summary>
+
                                                                     <CreateWorkoutLogForm planId={plan.id}
                                                                         workoutId={workout.id}
                                                                         onCreated={handleLogSaved}
