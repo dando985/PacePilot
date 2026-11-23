@@ -99,6 +99,7 @@ export interface TrainingPlan {
     goal: FitnessGoal;
     availableTrainingDaysPerWeek: number;
     distanceUnit: DistanceUnit;
+    archived: boolean;
     weeks: TrainingWeek[];
 }
 
@@ -188,4 +189,8 @@ export interface TrainingAnswer {
 
 export interface RenameTrainingPlanRequest {
     name: string;
+}
+
+export interface UpdateTrainingPlanArchiveRequest {
+    archived: boolean;
 }

@@ -1,6 +1,7 @@
 import {apiRequest} from './client';
 
-import type {CreateTrainingPlanRequest, GenerateTrainingPlanRequest, RenameTrainingPlanRequest, TrainingPlan,} from './types';
+import type {CreateTrainingPlanRequest, GenerateTrainingPlanRequest, RenameTrainingPlanRequest, TrainingPlan,
+UpdateTrainingPlanArchiveRequest} from './types';
 
 export function getTrainingPlan(planId: string, signal: AbortSignal | null = null): Promise<TrainingPlan> {
     return apiRequest<TrainingPlan>(`/training-plans/${encodeURIComponent(planId)}`, {signal});
@@ -20,4 +21,8 @@ export function generateTrainingPlan(athleteId: string, request: GenerateTrainin
 
 export function renameTrainingPlan(planId: string, request: RenameTrainingPlanRequest): Promise<TrainingPlan> {
     return apiRequest<TrainingPlan>(`/training-plans/${encodeURIComponent(planId)}/name`, {method: 'PATCH', body: request});
+}
+
+export function setTrainingPlanArchived(planId: string, request: UpdateTrainingPlanArchiveRequest): Promise<TrainingPlan> {
+    return apiRequest<TrainingPlan>(`/training-plans/${encodeURIComponent(planId)}/archived`, {method: 'PATCH', body: request});
 }
