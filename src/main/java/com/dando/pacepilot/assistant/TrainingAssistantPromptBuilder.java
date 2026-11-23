@@ -38,19 +38,41 @@ public class TrainingAssistantPromptBuilder {
         return """
                 You are PacePilot, a fitness and running assistant.
 
-                Use the athlete_profile, training_plan, and workout_history sections as
-                application facts. You may answer factual questions about the supplied
-                schedule, recorded results, and progress without a knowledge passage.
+                There are two independent kinds of evidence:
 
-                Base training recommendations and explanations on the numbered knowledge
-                passages in training_context.
+                APPLICATION FACTS: athlete_profile, training_plan, workout_history,
+                and the plan_progress section inside workout_history. These contain
+                saved application data. Java calculates plan_progress from every matching
+                workout log before limiting the detailed schedule and log sections.
 
-                If those passages do not support the training guidance needed to answer,
-                clearly explain that the available knowledge is insufficient.
+                TRAINING GUIDANCE: numbered document passages in training_context.
+                These support general training advice and recommendations.
 
-                Cite supporting passages using their source numbers, such as [1] or [2].
-                Do not invent sources, training facts, or citations. Do not attribute
-                personal details, scheduled workouts, or logged results to a knowledge passage.
+                Answer application-fact questions directly from the application facts.
+                Questions about recorded distance, recorded duration, completion counts,
+                and scheduled dates do not require training document passages or citations.
+                An empty training_context does not make the application facts unavailable.
+
+                For a question about total recorded miles, use Recorded distance in miles
+                from plan_progress. For kilometers, use Recorded distance in kilometers.
+                For total recorded time, use Recorded duration. Report a supplied numeric
+                total even when some workouts are not logged or lack a measurement.
+                Explain that it is a recorded subtotal; do not claim it includes unrecorded
+                activity. An unknown measurement does not invalidate known measurements.
+
+                The summary identifies recorded distance across all workout types.
+                Describe it as the plan's recorded distance. Do not claim that it is
+                a running-only breakdown if that breakdown is not supplied.
+                If a requested statistic is not supplied, say which statistic is missing.
+
+                For training recommendations, use supporting numbered passages and cite
+                them using [1], [2], and so on. If no passage supports a recommendation,
+                explain that limitation only for the recommendation. Still answer any
+                factual part of the question using the application facts.
+
+                Do not invent measurements, sources, or citations. Do not attribute saved
+                application facts to training document passages.
+
 
                 When no training plan is selected, do not assume a goal, weekly availability,
                 preferred distance unit, schedule, or workout history. Ask for a plan
@@ -127,7 +149,7 @@ public class TrainingAssistantPromptBuilder {
 
         return """
                 Reference date: %s
-
+        
                 <athlete_profile>
                 Display name: %s
                 Age on %s: %s
@@ -135,34 +157,36 @@ public class TrainingAssistantPromptBuilder {
                 Gender: %s
                 Experience level: %s
                 </athlete_profile>
-
+        
                 <training_plan>
                 %s
                 </training_plan>
-
-                <workout_history>
-                %s
-                </workout_history>
-
-                Question:
-                %s
-
+        
                 <training_context>
                 %s
                 </training_context>
+        
+                <workout_history>
+                %s
+                </workout_history>
+        
+                Question:
+                %s
                 """.formatted(
-                today,
-                profile.displayName(),
-                today,
-                formatValue(profile.ageOn(today)),
-                formatWeight(profile),
-                formatValue(profile.gender()),
-                formatValue(profile.experienceLevel()),
-                formatPlanContext(plan),
-                formatWorkoutHistory(plan, logs, today),
-                question,
-                context.isEmpty() ? "No training knowledge passages were retrieved." : context.toString()
-        );
+                        today,
+                        profile.displayName(),
+                        today,
+                        formatValue(profile.ageOn(today)),
+                        formatWeight(profile),
+                        formatValue(profile.gender()),
+                        formatValue(profile.experienceLevel()),
+                        formatPlanContext(plan),
+                        context.isEmpty()
+                                ? "No training knowledge passages were retrieved."
+                                : context.toString(),
+                        formatWorkoutHistory(plan, logs, today),
+                        question
+                );
     }
 
     private String formatPlanContext(TrainingPlan plan) {
@@ -225,8 +249,6 @@ public class TrainingAssistantPromptBuilder {
 
         StringBuilder history = new StringBuilder();
 
-        history.append(formatProgress(workouts, logsByWorkoutId, plan.distanceUnit(), today));
-
         history.append("\nSchedule details: showing %d of %d workouts. ".formatted(scheduleDetails.size(), workouts.size()));
 
         history.append("Up to %d workouts closest to the reference date, listed by scheduled date.\n\n".formatted(MAX_SCHEDULE_WORKOUTS));
@@ -284,6 +306,10 @@ public class TrainingAssistantPromptBuilder {
             ));
         }
 
+        history.append("\n<plan_progress>\n");
+        history.append(formatProgress(workouts, logsByWorkoutId, plan.distanceUnit(), today));
+        history.append("</plan_progress>\n");
+
         return history.toString();
     }
 
@@ -339,24 +365,44 @@ public class TrainingAssistantPromptBuilder {
                 durationLogCount
         );
 
+        double miles = preferredUnit == DistanceUnit.MILES ? totalDistance : totalDistance / KILOMETERS_PER_MILE;
+
+        double kilometers = preferredUnit == DistanceUnit.KILOMETERS ? totalDistance : totalDistance * KILOMETERS_PER_MILE;
+
+        String recordedMiles = distanceLogCount == 0 ? "Not recorded" : String.format(Locale.ROOT, "%.2f MILES", miles);
+
+        String recordedKilometers = distanceLogCount == 0 ? "Not recorded" : String.format(Locale.ROOT, "%.2f KILOMETERS", kilometers);
+
         return """
                 Progress summary for the entire selected plan:
                 Planned active workouts: %d
                 Active workouts with a completion log: %d
                 Past active workouts without a log, before %s: %d
                 Recorded distance: %s
+                Recorded distance in miles: %s
+                Recorded distance in kilometers: %s
                 Recorded duration: %s
+                Matching completion logs: %d
+                Completion logs without a distance measurement: %d
+                Completion logs without a duration measurement: %d
+                Data scope: all matching logs for the selected plan, not just the detail rows above.
                 REST entries are excluded from active-workout counts.
                 Recorded totals include all matching logs, including logs for REST entries.
                 Missing measurements are excluded from totals, not treated as zero.
+                A numeric recorded subtotal remains available when some measurements are missing.
                 """.formatted(
-                activeWorkouts,
-                completedActiveWorkouts,
-                today,
-                pastUnloggedWorkouts,
-                recordedDistance,
-                recordedDuration
-        );
+                        activeWorkouts,
+                        completedActiveWorkouts,
+                        today,
+                        pastUnloggedWorkouts,
+                        recordedDistance,
+                        recordedMiles,
+                        recordedKilometers,
+                        recordedDuration,
+                        logsByWorkoutId.size(),
+                        logsByWorkoutId.size() - distanceLogCount,
+                        logsByWorkoutId.size() - durationLogCount
+                );
     }
 
     private String formatDistance(Double distance, DistanceUnit unit) {
