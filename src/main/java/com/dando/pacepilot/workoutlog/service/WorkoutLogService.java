@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.time.LocalDate;
+import java.util.Comparator;
 
 // Service for managing workout logs, including creating new logs and retrieving existing ones.
 // It interacts with the WorkoutLogRepository for persistence, as well as the TrainingPlanService and AthleteProfileService for related data.
@@ -106,6 +108,18 @@ public class WorkoutLogService {
                 .stream()
                 .filter(log -> log.athleteProfileId().equals(plan.athleteProfileId()))
                 .filter(log -> workoutIds.contains(log.plannedWorkoutId()))
+                .toList();
+    }
+
+    public List<WorkoutLog> findLogsForAthleteBetween(UUID athleteId, LocalDate fromDate, LocalDate throughDate) {
+        if (athleteId == null || fromDate == null || throughDate == null || throughDate.isBefore(fromDate)) {
+            throw new IllegalArgumentException("An athlete ID and valid workout history date range are required.");
+        }
+
+        return findLogsByAthleteId(athleteId).stream()
+                .filter(log -> athleteId.equals(log.athleteProfileId()))
+                .filter(log -> !log.completedDate().isBefore(fromDate) && !log.completedDate().isAfter(throughDate))
+                .sorted(Comparator.comparing(WorkoutLog::completedDate).reversed().thenComparing(WorkoutLog::id))
                 .toList();
     }
 
