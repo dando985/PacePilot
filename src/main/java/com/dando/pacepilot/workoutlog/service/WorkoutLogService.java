@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 // Service for managing workout logs, including creating new logs and retrieving existing ones.
 // It interacts with the WorkoutLogRepository for persistence, as well as the TrainingPlanService and AthleteProfileService for related data.
@@ -83,6 +85,28 @@ public class WorkoutLogService {
     public List<WorkoutLog> findLogsByAthleteId(UUID athleteId) {
         profileService.getProfileById(athleteId);
         return logRepository.findByAthleteProfileId(athleteId);
+    }
+
+    /*
+    Collects the IDs of every planned workout in the selected plan.
+    Loads the athlete’s logs using existing repository query.
+    Keeps logs whose athlete and planned workout match the selected plan.
+     */
+    public List<WorkoutLog> findLogsForPlan(TrainingPlan plan) {
+        if (plan == null) {
+            throw new IllegalArgumentException("Training plan is required.");
+        }
+
+        Set<UUID> workoutIds = plan.weeks().stream()
+                .flatMap(week -> week.workouts().stream())
+                .map(PlannedWorkout::id)
+                .collect(Collectors.toSet());
+
+        return logRepository.findByAthleteProfileId(plan.athleteProfileId())
+                .stream()
+                .filter(log -> log.athleteProfileId().equals(plan.athleteProfileId()))
+                .filter(log -> workoutIds.contains(log.plannedWorkoutId()))
+                .toList();
     }
 
     private PlannedWorkout findPlannedWorkout(TrainingPlan plan, UUID workoutId) {
