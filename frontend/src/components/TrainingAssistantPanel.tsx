@@ -26,8 +26,9 @@ export default function TrainingAssistantPanel(props: {athleteId: string; plans:
             <h3>Training assistant</h3>
 
             <p>
-                Ask a training question using your profile and PacePilot's training
-                knowledge. Select a plan to include its goal and training preferences.
+                Ask questions using your profile and PacePilot's training knowledge.
+                Select a plan to include its goal, schedule, workout logs, and progress.
+                Detailed context focuses on nearby scheduled workouts and recent logs.
             </p>
 
             <p className="assistant-plan-picker">
@@ -38,7 +39,8 @@ export default function TrainingAssistantPanel(props: {athleteId: string; plans:
                         <option value="">General question (no plan)</option>
                         {availablePlans.map((plan) => (
                             <option key={plan.id} value={plan.id}>
-                                {plan.name} ({plan.startDate} – {plan.endDate})
+                                {plan.name}{plan.archived ? ' (archived)' : ''}{' '}
+                                ({plan.startDate} – {plan.endDate})
                             </option>
                         ))}
                     </select>
@@ -122,7 +124,10 @@ function AssistantQuestionForm(props: {athleteId: string; trainingPlanId: string
                         <label>
                             Question (up to {MAX_QUESTION_LENGTH} characters)
                             <textarea name="question" rows={4} maxLength={MAX_QUESTION_LENGTH}
-                                      placeholder="How should an easy run feel?"
+                                      placeholder={
+                                          props.trainingPlanId === null
+                                              ? 'How should an easy run feel?' : 'How many workouts have I completed in this plan?'
+                                      }
                                       required
                             />
                         </label>
@@ -154,7 +159,11 @@ function AssistantQuestionForm(props: {athleteId: string; trainingPlanId: string
                         <h5>Retrieved sources</h5>
 
                         {assistantState.response.sources.length === 0 ? (
-                            <p>No sources were returned for this question.</p>
+                            <p>
+                                No training document passages were retrieved. Answers
+                                about your profile or selected plan can use your saved
+                                information.
+                            </p>
                         ) : (
                             assistantState.response.sources.map((source) => (
                                 <details
