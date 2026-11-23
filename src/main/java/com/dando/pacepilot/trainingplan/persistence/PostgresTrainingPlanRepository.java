@@ -40,6 +40,16 @@ public class PostgresTrainingPlanRepository implements TrainingPlanRepository {
     }
 
     @Override
+    @Transactional
+    public Optional<TrainingPlan> setArchived(UUID planId, boolean archived) {
+        return jpaRepository.findById(planId)
+                .map(entity -> {
+                    entity.setArchived(archived);
+                    return toDomain(entity);
+                });
+    }
+
+    @Override
     public Optional<TrainingPlan> findById(UUID id) {
         return jpaRepository.findById(id).map(this::toDomain);
     }
@@ -68,6 +78,9 @@ public class PostgresTrainingPlanRepository implements TrainingPlanRepository {
                 plan.availableTrainingDaysPerWeek(),
                 plan.distanceUnit()
         );
+
+        // Set the archived status of the plan entity based on the domain model
+        planEntity.setArchived(plan.archived());
 
         for (TrainingWeek week : plan.weeks()) {
             TrainingWeekEntity weekEntity = new TrainingWeekEntity(planEntity, week.weekNumber(), week.startDate());
@@ -115,6 +128,7 @@ public class PostgresTrainingPlanRepository implements TrainingPlanRepository {
                 goal,
                 entity.getAvailableTrainingDaysPerWeek(),
                 entity.getDistanceUnit(),
+                entity.isArchived(),
                 weeks
         );
     }

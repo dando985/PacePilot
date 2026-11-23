@@ -57,6 +57,11 @@ public class TrainingPlanController {
         return planService.renamePlan(planId, request);
     }
 
+    @PatchMapping("/api/training-plans/{planId}/archived")
+    public TrainingPlan setArchived(@PathVariable UUID planId, @Valid @RequestBody UpdateTrainingPlanArchiveRequest request) {
+        return planService.setArchived(planId, request);
+    }
+
     @GetMapping("/api/training-plans/{planId}")
     public TrainingPlan getPlanById(@PathVariable UUID planId) {
         return planService.getPlanById(planId);

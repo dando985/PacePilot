@@ -54,6 +54,9 @@ public class TrainingPlanEntity {
     @Column(name = "distance_unit", nullable = false, length = 20)
     private DistanceUnit distanceUnit;
 
+    @Column(name = "archived", nullable = false)
+    private boolean archived;
+
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id.weekNumber ASC")
     private List<TrainingWeekEntity> weeks = new ArrayList<>();
@@ -131,6 +134,14 @@ public class TrainingPlanEntity {
 
     public DistanceUnit getDistanceUnit() {
         return distanceUnit;
+    }
+
+    public boolean isArchived() {
+        return archived;
+    }
+
+    public void setArchived(boolean archived) {
+        this.archived = archived;
     }
 
     public List<TrainingWeekEntity> getWeeks() {

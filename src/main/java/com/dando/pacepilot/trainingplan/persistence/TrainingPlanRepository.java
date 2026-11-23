@@ -12,6 +12,8 @@ public interface TrainingPlanRepository {
 
     Optional<TrainingPlan> rename(UUID planId, String newName);
 
+    Optional<TrainingPlan> setArchived(UUID planId, boolean archived);
+
     Optional<TrainingPlan> findById(UUID id);
 
     List<TrainingPlan> findByAthleteProfileId(UUID athleteProfileId);

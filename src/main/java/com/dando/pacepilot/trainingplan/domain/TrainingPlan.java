@@ -18,6 +18,7 @@ public record TrainingPlan(
         FitnessGoal goal,
         int availableTrainingDaysPerWeek,
         DistanceUnit distanceUnit,
+        boolean archived,
         List<TrainingWeek> weeks
 ) {
 
@@ -62,7 +63,6 @@ public record TrainingPlan(
             throw new IllegalArgumentException("A training plan must contain weeks.");
         }
 
-        // Ensure the number of weeks matches the date range of the plan
         long requiredWeeks = ChronoUnit.DAYS.between(startDate, endDate) / 7 + 1;
 
         if (weeks.size() != requiredWeeks) {
@@ -85,9 +85,8 @@ public record TrainingPlan(
             LocalDate expectedStartDate = startDate.plusWeeks(index);
 
             if (!week.startDate().equals(expectedStartDate)) {
-                throw new IllegalArgumentException(
-                        "Each week must start seven days after the previous week, " +
-                                "with week 1 starting on the plan's start date."
+                throw new IllegalArgumentException("Each week must start seven days after the previous week, "
+                        + "with week 1 starting on the plan's start date."
                 );
             }
 
@@ -99,7 +98,7 @@ public record TrainingPlan(
 
             if (trainingDays > availableTrainingDaysPerWeek) {
                 throw new IllegalArgumentException("Week %d exceeds the plan's %d available training days."
-                                .formatted(week.weekNumber(), availableTrainingDaysPerWeek)
+                        .formatted(week.weekNumber(), availableTrainingDaysPerWeek)
                 );
             }
 
@@ -115,5 +114,30 @@ public record TrainingPlan(
         }
 
         weeks = List.copyOf(weeks);
+    }
+
+    public TrainingPlan(
+            UUID id,
+            UUID athleteProfileId,
+            String name,
+            LocalDate startDate,
+            LocalDate endDate,
+            FitnessGoal goal,
+            int availableTrainingDaysPerWeek,
+            DistanceUnit distanceUnit,
+            List<TrainingWeek> weeks
+    ) {
+        this(
+                id,
+                athleteProfileId,
+                name,
+                startDate,
+                endDate,
+                goal,
+                availableTrainingDaysPerWeek,
+                distanceUnit,
+                false,
+                weeks
+        );
     }
 }

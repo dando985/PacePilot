@@ -12,6 +12,7 @@ import com.dando.pacepilot.trainingplan.exception.TrainingPlanNotFoundException;
 import com.dando.pacepilot.trainingplan.persistence.TrainingPlanRepository;
 import com.dando.pacepilot.trainingplan.domain.FitnessGoal;
 import com.dando.pacepilot.trainingplan.api.RenameTrainingPlanRequest;
+import com.dando.pacepilot.trainingplan.api.UpdateTrainingPlanArchiveRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,6 +40,10 @@ public class TrainingPlanService {
 
     public TrainingPlan renamePlan(UUID planId, RenameTrainingPlanRequest request) {
         return planRepository.rename(planId, request.name()).orElseThrow(() -> new TrainingPlanNotFoundException(planId));
+    }
+
+    public TrainingPlan setArchived(UUID planId, UpdateTrainingPlanArchiveRequest request) {
+        return planRepository.setArchived(planId, request.archived()).orElseThrow(() -> new TrainingPlanNotFoundException(planId));
     }
 
     public TrainingPlan getPlanById(UUID planId) {
