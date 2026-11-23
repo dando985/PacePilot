@@ -4,6 +4,7 @@ import {getTrainingPlans} from '../api/trainingPlans';
 import {getWorkoutLogs} from '../api/workoutLogs';
 import CreateWorkoutLogForm from './CreateWorkoutLogForm';
 import GenerateTrainingPlanForm from './GenerateTrainingPlanForm';
+import RenameTrainingPlanForm from './RenameTrainingPlanForm';
 import TrainingAssistantPanel from './TrainingAssistantPanel';
 import TrainingPlanProgressSummary from './TrainingPlanProgressSummary';
 import {ApiError} from '../api/client';
@@ -31,6 +32,8 @@ const distanceLabels: Record<DistanceUnit, string> = {
 export default function TrainingPlansPanel(props: {athleteId: string}) {
     const [planState, setPlanState] = useState<PlanState>({status: 'loading'});
     const [reloadCount, setReloadCount] = useState(0);
+    const [renamingPlanId, setRenamingPlanId] = useState<string | null>(null);
+    const [planMessage, setPlanMessage] = useState<string | null>(null);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -63,7 +66,33 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
     }, [props.athleteId, reloadCount]);
 
     function reloadPlans() {
-        setPlanState({ status: 'loading' });
+        setRenamingPlanId(null);
+        setPlanMessage(null);
+        setPlanState({status: 'loading'});
+        setReloadCount((count) => count + 1);
+    }
+
+    function startRenamingPlan(planId: string) {
+        setPlanMessage(null);
+        setRenamingPlanId(planId);
+    }
+
+    function handlePlanRenamed(renamedPlan: TrainingPlan) {
+        setPlanState((current) => {
+            if (current.status !== 'success') {
+                return current;
+            }
+
+            return {
+                ...current,
+                plans: current.plans.map((plan) => plan.id === renamedPlan.id ? renamedPlan : plan
+                ),
+            };
+        });
+
+        setRenamingPlanId((currentId) => currentId === renamedPlan.id ? null : currentId);
+
+        setPlanMessage(`Renamed plan to ${renamedPlan.name}.`);
         setReloadCount((count) => count + 1);
     }
 
@@ -107,17 +136,30 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
 
             <GenerateTrainingPlanForm athleteId={props.athleteId} onGenerated={reloadPlans}/>
 
+            {planMessage !== null && (<p role="status" className="plan-update-message">{planMessage}</p>)}
+
             {planState.status === 'loading' && (<p role="status">Loading training plans and workout logs...</p>)}
 
             {planState.status === 'error' && (<p role="alert">{planState.message}</p>)}
 
             {planState.status === 'success' && (
-                planState.plans.length === 0 ?
-                    (<p>No training plans yet for this athlete.</p>) : (
+                planState.plans.length === 0 ? (<p>No training plans yet for this athlete.</p>) : (
                     <div className="plan-list">
                         {planState.plans.map((plan) => (
                             <article key={plan.id} className="plan-card">
-                                <h3>{plan.name}</h3>
+                                <header className="plan-card-header">
+                                    <h3>{plan.name}</h3>
+
+                                    <button type="button" onClick={() => startRenamingPlan(plan.id)}>
+                                        Rename plan
+                                    </button>
+                                </header>
+
+                                {renamingPlanId === plan.id && (
+                                    <RenameTrainingPlanForm key={plan.id} plan={plan} onRenamed={handlePlanRenamed}
+                                        onCancel={() => setRenamingPlanId(null)}
+                                    />
+                                )}
 
                                 <p>{plan.startDate} – {plan.endDate}</p>
 
@@ -228,7 +270,12 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                 )
             )}
 
-            {planState.status === 'success' && (<TrainingAssistantPanel athleteId={props.athleteId} plans={planState.plans}/>)}
+            {planState.status === 'success' && (
+                <TrainingAssistantPanel
+                    athleteId={props.athleteId}
+                    plans={planState.plans}
+                />
+            )}
         </section>
     );
 }
