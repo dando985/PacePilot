@@ -1,0 +1,2 @@
+ALTER TABLE training_plans
+    ADD COLUMN archived BOOLEAN NOT NULL DEFAULT FALSE;
