@@ -156,6 +156,14 @@ export interface CreateWorkoutLogRequest {
     notes?: string | null;
 }
 
+export interface UpdateWorkoutLogRequest {
+    completedDate: string;
+    actualDistance: number | null;
+    distanceUnit: DistanceUnit | null;
+    actualDurationMinutes: number | null;
+    notes: string | null;
+}
+
 export interface AskTrainingAssistantRequest {
     athleteProfileId: string;
     question: string;

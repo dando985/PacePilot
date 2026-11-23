@@ -216,7 +216,8 @@ html body {
 }
 
 .profile-form-actions,
-.plan-form-actions {
+.plan-form-actions,
+.workout-log-form-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -224,12 +225,12 @@ html body {
   grid-column: 1 / -1;
 }
 
-:is(.profile-form-actions, .plan-form-actions) > button[type="button"]:not(:disabled) {
+:is(.profile-form-actions, .plan-form-actions, .workout-log-form-actions) > button[type="button"]:not(:disabled) {
   background-color: var(--color-surface);
   color: var(--color-primary);
 }
 
-:is(.profile-form-actions, .plan-form-actions) > button[type="button"]:hover:not(:disabled) {
+:is(.profile-form-actions, .plan-form-actions, .workout-log-form-actions) > button[type="button"]:hover:not(:disabled) {
   border-color: var(--color-primary-hover);
   background-color: #edf7ef;
 }
@@ -600,11 +601,34 @@ html body {
   background-color: #edf7ef;
 }
 
-.workout-log h6 {
-  margin: 0 0 0.5rem;
+.workout-log > .workout-log-form {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+}
+
+.workout-log-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.workout-log-header > h6 {
+  min-width: 0;
+  margin: 0;
   color: var(--color-primary);
   font-size: 1rem;
   line-height: 1.4;
+}
+
+.workout-log-header > button {
+  flex-shrink: 0;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 .workout-log p {
@@ -733,7 +757,8 @@ html body {
   .training-plans-header,
   .profile-card-actions,
   .profile-form-actions,
-  .plan-form-actions {
+  .plan-form-actions,
+  .workout-log-form-actions {
     flex-direction: column;
     align-items: stretch;
   }
@@ -742,7 +767,8 @@ html body {
   .training-plans-header button,
   .profile-card button,
   .profile-form-actions > button,
-  .plan-form-actions > button {
+  .plan-form-actions > button,
+  .workout-log-form-actions > button {
     width: 100%;
   }
 
