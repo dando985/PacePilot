@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PutMapping;
 
 import java.net.URI;
 import java.util.List;
@@ -41,6 +42,11 @@ public class WorkoutLogController {
         // Return a response with the location of the newly created log
         URI location = URI.create("/api/workout-logs/" + log.id());
         return ResponseEntity.created(location).body(log);
+    }
+
+    @PutMapping("/api/workout-logs/{logId}")
+    public WorkoutLog updateLog(@PathVariable UUID logId, @Valid @RequestBody UpdateWorkoutLogRequest request) {
+        return logService.updateLog(logId, request);
     }
 
     @GetMapping("/api/workout-logs/{logId}")

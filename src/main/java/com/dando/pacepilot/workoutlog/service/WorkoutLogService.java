@@ -6,12 +6,14 @@ import com.dando.pacepilot.trainingplan.domain.TrainingPlan;
 import com.dando.pacepilot.trainingplan.exception.PlannedWorkoutNotFoundException;
 import com.dando.pacepilot.trainingplan.service.TrainingPlanService;
 import com.dando.pacepilot.workoutlog.api.CreateWorkoutLogRequest;
+import com.dando.pacepilot.workoutlog.api.UpdateWorkoutLogRequest;
 import com.dando.pacepilot.workoutlog.domain.WorkoutLog;
 import com.dando.pacepilot.workoutlog.exception.InvalidWorkoutLogException;
 import com.dando.pacepilot.workoutlog.exception.WorkoutAlreadyLoggedException;
 import com.dando.pacepilot.workoutlog.exception.WorkoutLogNotFoundException;
 import com.dando.pacepilot.workoutlog.persistence.WorkoutLogRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -47,9 +49,35 @@ public class WorkoutLogService {
         return logRepository.save(log);
     }
 
+    @Transactional
+    public WorkoutLog updateLog(UUID logId, UpdateWorkoutLogRequest request) {
+        if (logId == null || request == null) {
+            throw new IllegalArgumentException("Workout log ID and update request are required.");
+        }
+
+        WorkoutLog existingLog = getLogById(logId);
+        WorkoutLog updatedLog;
+
+        try {
+            updatedLog = new WorkoutLog(
+                    existingLog.id(),
+                    existingLog.athleteProfileId(),
+                    existingLog.plannedWorkoutId(),
+                    request.completedDate(),
+                    request.actualDistance(),
+                    request.distanceUnit(),
+                    request.actualDurationMinutes(),
+                    request.notes()
+            );
+        } catch (IllegalArgumentException exception) {
+            throw new InvalidWorkoutLogException(exception);
+        }
+
+        return logRepository.save(updatedLog);
+    }
+
     public WorkoutLog getLogById(UUID logId) {
-        return logRepository.findById(logId)
-                .orElseThrow(() -> new WorkoutLogNotFoundException(logId));
+        return logRepository.findById(logId).orElseThrow(() -> new WorkoutLogNotFoundException(logId));
     }
 
     public List<WorkoutLog> findLogsByAthleteId(UUID athleteId) {
