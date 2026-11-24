@@ -17,6 +17,8 @@ import com.dando.pacepilot.trainingplan.exception.InvalidTrainingPlanException;
 import com.dando.pacepilot.trainingplan.generation.TrainingPlanGenerationParser.GeneratedWorkout;
 import com.dando.pacepilot.trainingplan.generation.TrainingPlanGenerationParser.TargetKind;
 import com.dando.pacepilot.trainingplan.service.TrainingPlanService;
+import com.dando.pacepilot.workoutlog.domain.WorkoutLog;
+import com.dando.pacepilot.workoutlog.service.WorkoutLogService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -37,6 +39,7 @@ public class TrainingPlanGenerationService {
     private static final int MAX_PLAN_DAYS = 26 * 7;
     private static final int MAX_DURATION_MINUTES = 360;
     private static final int MAX_DISTANCE_METERS = 50_000;
+    private static final int HISTORY_DAYS = 28;
 
     private final AthleteProfileService profileService;
     private final SemanticRetriever semanticRetriever;
@@ -45,6 +48,7 @@ public class TrainingPlanGenerationService {
     private final TrainingPlanGenerationPromptBuilder promptBuilder;
     private final TrainingPlanGenerationParser parser;
     private final TrainingPlanService planService;
+    private final WorkoutLogService workoutLogService;
 
     public TrainingPlanGenerationService(
             AthleteProfileService profileService,
@@ -53,7 +57,9 @@ public class TrainingPlanGenerationService {
             TrainingPlanJsonSchema schemaBuilder,
             TrainingPlanGenerationPromptBuilder promptBuilder,
             TrainingPlanGenerationParser parser,
-            TrainingPlanService planService
+            TrainingPlanService planService,
+            WorkoutLogService workoutLogService
+
     ) {
         this.profileService = profileService;
         this.semanticRetriever = semanticRetriever;
@@ -62,6 +68,7 @@ public class TrainingPlanGenerationService {
         this.promptBuilder = promptBuilder;
         this.parser = parser;
         this.planService = planService;
+        this.workoutLogService = workoutLogService;
     }
 
     public TrainingPlan generatePlan(UUID athleteId, GenerateTrainingPlanRequest request) {
@@ -83,7 +90,18 @@ public class TrainingPlanGenerationService {
             throw new TextGenerationException("No relevant training knowledge was found for this athlete.");
         }
 
-        List<GeneratedWorkout> generatedWorkouts = generateWorkouts(request, profile, trainingDates, results);
+        LocalDate historyThroughDate = LocalDate.now();
+        LocalDate historyFromDate = historyThroughDate.minusDays(HISTORY_DAYS - 1);
+
+        List<WorkoutLog> recentLogs =
+                workoutLogService.findLogsForAthleteBetween(athleteId, historyFromDate, historyThroughDate);
+
+        List<TrainingPlan> previousPlans = recentLogs.isEmpty() ? List.of() : planService.findPlansByAthleteId(athleteId);
+
+        Map<String, Object> trainingHistory =
+                promptBuilder.buildTrainingHistory(profile, previousPlans, recentLogs, historyFromDate, historyThroughDate);
+
+        List<GeneratedWorkout> generatedWorkouts = generateWorkouts(request, profile, trainingDates, trainingHistory, results);
 
         CreateTrainingPlanRequest plan = buildPlan(request, planDays, trainingDates, generatedWorkouts);
 
@@ -169,6 +187,7 @@ public class TrainingPlanGenerationService {
             GenerateTrainingPlanRequest request,
             AthleteProfile profile,
             List<LocalDate> trainingDates,
+            Map<String, Object> trainingHistory,
             List<SemanticSearchResult> results
     ) {
         Map<String, Object> schema = schemaBuilder.schema(trainingDates.size(), MAX_DURATION_MINUTES, MAX_DISTANCE_METERS);
@@ -182,6 +201,7 @@ public class TrainingPlanGenerationService {
                     request,
                     profile,
                     trainingDates,
+                    trainingHistory,
                     results,
                     schema,
                     feedback
