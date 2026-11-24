@@ -163,6 +163,13 @@ export default function GenerateTrainingPlanForm(props: {athleteId: string; onGe
 
             <p>You can generate up to 12 weeks (84 days) at a time.</p>
 
+            <p>
+                PacePilot includes your profile, goal, training availability, and
+                workout logs from the 28 days ending today when generating a plan.
+                Logs from archived plans are included. You can also generate a plan
+                without recent workout logs.
+            </p>
+
             <fieldset disabled={generating}>
                 <legend>Plan details</legend>
 
