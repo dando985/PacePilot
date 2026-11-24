@@ -33,36 +33,36 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session   // allows sessions to be created when needed.
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
-                .authorizeHttpRequests(authorize -> authorize   // allows access to the listed authentication routes before login; other requests require authentication.
-                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/auth/csrf").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
-                        .anyRequest().authenticated()
+                .authorizeHttpRequests(authorize -> authorize
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()   // allow internal error dispatch without login
+                        .requestMatchers(HttpMethod.GET, "/api/auth/csrf").permitAll()  // allow CSRF token retrieval without login
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()  // allow unauthenticated access to these two post routes
+                        .anyRequest().authenticated()   // all remaining requests need an authorized user
                 )
                 .formLogin(form -> form     // processes email/password login through Spring Security.
-                        .loginPage("/api/auth/login")
-                        .loginProcessingUrl("/api/auth/login")
-                        .usernameParameter("email")
-                        .passwordParameter("password")
+                        .loginPage("/api/auth/login")       // sets custom login-page address
+                        .loginProcessingUrl("/api/auth/login")  // sets URL where Spring's authentication filter processes submitted credentials
+                        .usernameParameter("email")     // read the login identifier from form field "email"
+                        .passwordParameter("password")  // read the password from form field "password"
                         .successHandler((request, response, authentication) ->
                                 response.setStatus(HttpStatus.NO_CONTENT.value())
-                        )
+                        )   // returns no content response body (HTTP 204) after successful login
                         .failureHandler((request, response, exception) ->
                                 response.setStatus(HttpStatus.UNAUTHORIZED.value())
-                        )
+                        )   // returns unauthorized response body (HTTP 401) after failure to login
                 )
                 .logout(logout -> logout    // handles logout and session cleanup.
                         .logoutUrl("/api/auth/logout")
-                        .deleteCookies("JSESSIONID")
+                        .deleteCookies("JSESSIONID")    // clear cookie name "JSESSIONID"
                         .logoutSuccessHandler((request, response, authentication) ->
                                 response.setStatus(HttpStatus.NO_CONTENT.value())
-                        )
+                        )   // return no content response body (HTTP 204) after successful logout
                 )
-                .exceptionHandling(exceptions -> exceptions     // returns 401 for authentication requirements and 403 for denied access.
+                .exceptionHandling(exceptions -> exceptions     // returns HTTP 401 for unauthorized access
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                         .accessDeniedHandler((request, response, exception) ->
                                 response.setStatus(HttpStatus.FORBIDDEN.value())
-                        )
+                        )   // a missing or invalid CSRF token may result in HTTP 403 forbidden response
                 );
 
         return http.build();
