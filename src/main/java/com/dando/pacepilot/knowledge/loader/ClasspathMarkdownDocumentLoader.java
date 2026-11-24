@@ -16,18 +16,19 @@ import java.util.Comparator;
 import java.util.List;
 
 @Component
-public class ClasspathMarkdownDocumentLoader {
+public class ClasspathMarkdownDocumentLoader implements TrainingDocumentLoader {
 
     private static final String RESOURCE_PATTERN = "classpath*:knowledge/*.md";
 
     private final ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver();
 
+    @Override
     public List<TrainingDocument> loadDocuments() {
         try {
             Resource[] resources = resourceResolver.getResources(RESOURCE_PATTERN);
 
             if (resources.length == 0) {
-                throw new TrainingDocumentLoadingException("No training documents were found");
+                return List.of();
             }
 
             Arrays.sort(resources, Comparator.comparing(this::getSortableFilename));
