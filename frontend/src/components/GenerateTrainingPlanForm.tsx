@@ -161,7 +161,7 @@ export default function GenerateTrainingPlanForm(props: {athleteId: string; onGe
         >
             <h3>Generate a training plan</h3>
 
-            <p>You can generate up to 12 weeks (84 days) at a time.</p>
+            <p>You can generate up to 26 weeks at a time.</p>
 
             <p>
                 PacePilot includes your profile, goal, training availability, and
