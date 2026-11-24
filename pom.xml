@@ -81,6 +81,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Extracts text from PDF training documents -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.8</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -91,5 +98,6 @@
             </plugin>
         </plugins>
     </build>
+
 
 </project>
