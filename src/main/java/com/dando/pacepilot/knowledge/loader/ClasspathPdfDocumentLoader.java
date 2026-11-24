@@ -93,6 +93,7 @@ public class ClasspathPdfDocumentLoader implements TrainingDocumentLoader {
 
         StringBuilder content = new StringBuilder();
 
+        // Create a markdown-like section title for each page in the document. The page number is the section title
         for (int page = 1; page <= pdf.getNumberOfPages(); page++) {
             stripper.setStartPage(page);
             stripper.setEndPage(page);
@@ -103,7 +104,6 @@ public class ClasspathPdfDocumentLoader implements TrainingDocumentLoader {
                 continue;
             }
 
-            // Each section will be separated by the corresponding document page number
             content.append("## Page ").append(page).append("\n\n");
 
             content.append(escapeHeadingLines(pageText)).append("\n\n");
