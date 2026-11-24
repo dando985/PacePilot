@@ -18,7 +18,7 @@ import java.util.UUID;
 @Service
 public class TrainingAssistantService {
 
-    private static final int RETRIEVAL_LIMIT = 3;
+    private static final int RETRIEVAL_LIMIT = 6;
 
     private final AthleteProfileService profileService;
     private final TrainingPlanService planService;
