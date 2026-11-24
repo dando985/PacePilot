@@ -103,7 +103,7 @@ public class ClasspathPdfDocumentLoader implements TrainingDocumentLoader {
                 continue;
             }
 
-            // each page of the document will be its own chunk
+            // Each section will be separated by the corresponding document page number
             content.append("## Page ").append(page).append("\n\n");
 
             content.append(escapeHeadingLines(pageText)).append("\n\n");
