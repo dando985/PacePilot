@@ -28,7 +28,7 @@ public class AccountUserDetailsService implements UserDetailsService {
 
         UserAccountEntity account = accountRepository
                 .findByEmailIgnoreCase(email.strip())
-                .orElseThrow(() -> new UsernameNotFoundException("Invalid email or password."));
+                .orElseThrow(() -> new UsernameNotFoundException("Invalid email."));
 
         return User.withUsername(account.getEmail())
                 .password(account.getPasswordHash())
