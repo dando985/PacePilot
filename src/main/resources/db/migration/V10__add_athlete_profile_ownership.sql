@@ -7,8 +7,9 @@ ALTER TABLE athlete_profiles
             REFERENCES user_accounts (id)
             ON DELETE CASCADE;
 
-CREATE INDEX athlete_profiles_owner_account_idx
-    ON athlete_profiles (owner_account_id);
+ALTER TABLE athlete_profiles
+    ADD CONSTRAINT athlete_profiles_owner_account_unique
+        UNIQUE (owner_account_id);
 
 ALTER TABLE training_plans
 DROP CONSTRAINT training_plans_athlete_fk,
