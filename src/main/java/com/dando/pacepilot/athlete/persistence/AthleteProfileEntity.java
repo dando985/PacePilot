@@ -20,6 +20,9 @@ public class AthleteProfileEntity {
     @Id
     private UUID id;
 
+    @Column(name = "owner_account_id", nullable = false, updatable = false)
+    private UUID ownerAccountId;
+
     @Column(name = "display_name", nullable = false, length = 100)
     private String displayName;
 
@@ -46,6 +49,7 @@ public class AthleteProfileEntity {
 
     public AthleteProfileEntity(
             UUID id,
+            UUID ownerAccountId,
             String displayName,
             LocalDate birthDate,
             Double weight,
@@ -54,6 +58,7 @@ public class AthleteProfileEntity {
             ExperienceLevel experienceLevel
     ) {
         this.id = id;
+        this.ownerAccountId = ownerAccountId;
         this.displayName = displayName;
         this.birthDate = birthDate;
         this.weight = weight;
@@ -64,6 +69,10 @@ public class AthleteProfileEntity {
 
     public UUID getId() {
         return id;
+    }
+
+    public UUID getOwnerAccountId() {
+        return ownerAccountId;
     }
 
     public String getDisplayName() {
