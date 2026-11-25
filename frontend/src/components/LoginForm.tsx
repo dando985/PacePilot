@@ -10,7 +10,7 @@ type SubmissionState =
     | {status: 'submitting'}
     | {status: 'error'; message: string};
 
-export default function LoginForm(props: { onLoggedIn: (account: UserAccount) => void; onShowRegistration: () => void; }) {
+export default function LoginForm(props: {onLoggedIn: (account: UserAccount) => void; onShowRegistration: () => void}) {
     const [submission, setSubmission] = useState<SubmissionState>({status: 'idle'});
     const pending = useRef(false);
     const submitting = submission.status === 'submitting';
