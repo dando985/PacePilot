@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
+// creates bean for password encoding and bean for filtering HTTP requests by building security rules
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
