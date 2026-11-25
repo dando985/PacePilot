@@ -76,6 +76,25 @@ html body {
   letter-spacing: -0.03em;
 }
 
+/* Account controls */
+.account-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  min-width: 0;
+  max-width: 30rem;
+}
+
+.account-controls > span {
+  width: 100%;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
 /* Buttons */
 .app button {
   min-height: 2.75rem;
@@ -107,7 +126,7 @@ html body {
 }
 
 /* Shared form styles */
-:is(.profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) {
+:is(.auth-form, .profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
@@ -119,11 +138,11 @@ html body {
   background-color: var(--color-surface);
 }
 
-:is(.profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) > :is(h2, h3, h4, h6, p, button, [role]) {
+:is(.auth-form, .profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) > :is(h2, h3, h4, h6, p, button, [role]) {
   grid-column: 1 / -1;
 }
 
-:is(.profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) > :is(h2, h3, h4, h6) {
+:is(.auth-form, .profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) > :is(h2, h3, h4, h6) {
   margin: 0;
   color: var(--color-text);
   font-size: 1.35rem;
@@ -136,7 +155,7 @@ html body {
   font-size: 0.95rem;
 }
 
-:is(.profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) fieldset {
+:is(.auth-form, .profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) fieldset {
   min-width: 0;
   margin: 0;
   padding: 1.25rem;
@@ -144,21 +163,21 @@ html body {
   border-radius: 0.75rem;
 }
 
-:is(.profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) legend {
+:is(.auth-form, .profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) legend {
   padding-inline: 0.4rem;
   color: var(--color-text);
   font-weight: 600;
 }
 
-:is(.profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) fieldset p {
+:is(.auth-form, .profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) fieldset p {
   margin: 0 0 1rem;
 }
 
-:is(.profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) fieldset p:last-child {
+:is(.auth-form, .profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) fieldset p:last-child {
   margin-bottom: 0;
 }
 
-:is(.profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) label,
+:is(.auth-form, .profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) label,
 .assistant-plan-picker label {
   display: flex;
   flex-direction: column;
@@ -168,7 +187,7 @@ html body {
   font-weight: 600;
 }
 
-:is(.profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) :is(input, select, textarea),
+:is(.auth-form, .profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) :is(input, select, textarea),
 .assistant-plan-picker select {
   width: 100%;
   min-width: 0;
@@ -183,27 +202,26 @@ html body {
   font-weight: 400;
 }
 
-/* Notes can grow vertically while staying within the form. */
-:is(.profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) textarea {
+:is(.auth-form, .profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) textarea {
   min-height: 6rem;
   resize: vertical;
 }
 
-:is(.profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) :is(input, select, textarea):focus-visible,
+:is(.auth-form, .profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) :is(input, select, textarea):focus-visible,
 .assistant-plan-picker select:focus-visible {
   border-color: var(--color-primary);
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
-:is(.profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) :is(input, select, textarea):disabled,
+:is(.auth-form, .profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) :is(input, select, textarea):disabled,
 .assistant-plan-picker select:disabled {
   background-color: var(--color-page);
   color: var(--color-muted);
   cursor: wait;
 }
 
-:is(.profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) small {
+:is(.auth-form, .profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) small {
   display: block;
   margin-top: 0.4rem;
   color: var(--color-muted);
@@ -211,10 +229,11 @@ html body {
   line-height: 1.5;
 }
 
-:is(.profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) > button {
+:is(.auth-form, .profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) > button {
   justify-self: start;
 }
 
+.auth-form-actions,
 .profile-form-actions,
 .plan-form-actions,
 .workout-log-form-actions {
@@ -225,20 +244,42 @@ html body {
   grid-column: 1 / -1;
 }
 
-:is(.profile-form-actions, .plan-form-actions, .workout-log-form-actions) > button[type="button"]:not(:disabled) {
+:is(.profile-form-actions, .plan-form-actions, .workout-log-form-actions) > button[type="button"]:not(:disabled),
+.auth-form-actions > button[type="button"]:not(:only-child):not(:disabled),
+.account-controls > button:not(:disabled) {
   background-color: var(--color-surface);
   color: var(--color-primary);
 }
 
-:is(.profile-form-actions, .plan-form-actions, .workout-log-form-actions) > button[type="button"]:hover:not(:disabled) {
+:is(.profile-form-actions, .plan-form-actions, .workout-log-form-actions) > button[type="button"]:hover:not(:disabled),
+.auth-form-actions > button[type="button"]:not(:only-child):hover:not(:disabled),
+.account-controls > button:hover:not(:disabled) {
   border-color: var(--color-primary-hover);
   background-color: #edf7ef;
 }
 
+/* Authentication forms */
+.auth-form {
+  width: 100%;
+  max-width: 32rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  margin: 0 auto 2rem;
+  overflow-wrap: anywhere;
+}
+
+#register-password-help {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
 /* Feedback messages */
 .app > p,
+.app [role="alert"],
+.athlete-dashboard > [role],
 .training-plans > p,
-:is(.profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) > [role] {
+:is(.auth-form, .profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) > [role] {
   margin: 0;
   padding: 1rem 1.25rem;
   border: 1px solid var(--color-border);
@@ -254,13 +295,13 @@ html body {
   color: #8a2929;
 }
 
-:is(.profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) > [role="status"] {
+:is(.auth-form, .profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) > [role="status"] {
   border-color: #b8d4c2;
   background-color: #edf7ef;
   color: var(--color-primary);
 }
 
-.app > .profile-update-message,
+.athlete-dashboard > .profile-update-message,
 .training-plans > .plan-update-message {
   margin-bottom: 1.25rem;
   border-color: #b8d4c2;
@@ -272,14 +313,17 @@ html body {
   margin-bottom: 1.25rem;
 }
 
-/* Athlete profiles */
-.profile-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 1rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.app [role="alert"] + button {
+  margin-top: 0.75rem;
+}
+
+/* Athlete dashboard */
+.athlete-dashboard {
+  min-width: 0;
+}
+
+.athlete-dashboard > .profile-card {
+  margin-bottom: 1.5rem;
 }
 
 .profile-card {
@@ -313,21 +357,6 @@ html body {
   align-items: center;
   gap: 0.75rem;
   margin-top: 1rem;
-}
-
-.profile-card button[aria-pressed="false"] {
-  background-color: var(--color-surface);
-  color: var(--color-primary);
-}
-
-.profile-card button[aria-pressed="false"]:hover:not(:disabled) {
-  background-color: #edf7ef;
-  border-color: var(--color-primary-hover);
-}
-
-.profile-card button[aria-pressed="true"] {
-  background-color: var(--color-primary);
-  color: white;
 }
 
 .profile-edit-form {
@@ -832,6 +861,8 @@ html body {
   }
 
   .app-header,
+  .account-controls,
+  .auth-form-actions,
   .training-plans-header,
   .profile-card-actions,
   .profile-form-actions,
@@ -843,6 +874,7 @@ html body {
   }
 
   .app-header button,
+  .auth-form-actions > button,
   .training-plans-header button,
   .profile-card button,
   .profile-form-actions > button,
@@ -852,17 +884,24 @@ html body {
     width: 100%;
   }
 
-  .profile-list,
+  .account-controls {
+    max-width: none;
+  }
+
+  .account-controls > span {
+    text-align: left;
+  }
+
   .plan-progress-totals {
     grid-template-columns: 1fr;
   }
 
-  :is(.profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) {
+  :is(.auth-form, .profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) {
     grid-template-columns: 1fr;
     padding: 1rem;
   }
 
-  :is(.profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) > button {
+  :is(.auth-form, .profile-form, .plan-generation-form, .plan-rename-form, .workout-log-form, .assistant-form) > button {
     width: 100%;
     justify-self: stretch;
   }
