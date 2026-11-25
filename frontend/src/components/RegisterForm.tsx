@@ -107,7 +107,7 @@ export default function RegisterForm(props: {onShowLogin: () => void}) {
                 <p>
                     <label>
                         Password
-                        <input name="password" type="password" autoComplete="new-password" minLength={15}
+                        <input name="password" type="password" autoComplete="new-password" minLength={6}
                             aria-describedby="register-password-help" required
                         />
                     </label>
