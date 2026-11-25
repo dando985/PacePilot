@@ -9,9 +9,12 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+// supplies an account's stored credentials to Spring Security during login
+// Spring's authentication provider calls this service then checks the submitted password against the returned hash
 @Service
 public class AccountUserDetailsService implements UserDetailsService {
 
+    // needed for account credential lookup in the database
     private final UserAccountJpaRepository accountRepository;
 
     public AccountUserDetailsService(UserAccountJpaRepository accountRepository) {
@@ -30,6 +33,8 @@ public class AccountUserDetailsService implements UserDetailsService {
                 .findByEmailIgnoreCase(email.strip())
                 .orElseThrow(() -> new UsernameNotFoundException("Invalid email."));
 
+        // builds Spring Security object to represent existing account
+        // assigned the role of USER
         return User.withUsername(account.getEmail())
                 .password(account.getPasswordHash())
                 .roles("USER")
