@@ -1,17 +1,21 @@
-import {apiRequest} from './client';
+import {ApiError, apiRequest} from './client';
 
-import type {AthleteProfile, CreateAthleteProfileRequest, UpdateAthleteProfileRequest,} from './types';
+import type {AthleteProfile, CreateAthleteProfileRequest, UpdateAthleteProfileRequest} from './types';
 
-export function getAthleteProfiles(signal: AbortSignal | null = null): Promise<AthleteProfile[]> {
-    return apiRequest<AthleteProfile[]>('/athletes', {signal});
-}
+export async function getCurrentAthleteProfile(signal: AbortSignal | null = null): Promise<AthleteProfile | null> {
+    try {
+        return await apiRequest<AthleteProfile>('/athletes/me', {signal, cache: 'no-store'});
+    } catch (error) {
+        if (error instanceof ApiError && error.status === 404) {
+            return null;
+        }
 
-export function getAthleteProfile(athleteId: string, signal: AbortSignal | null = null): Promise<AthleteProfile> {
-    return apiRequest<AthleteProfile>(`/athletes/${encodeURIComponent(athleteId)}`, {signal});
+        throw error;
+    }
 }
 
 export function createAthleteProfile(request: CreateAthleteProfileRequest): Promise<AthleteProfile> {
-    return apiRequest<AthleteProfile>('/athletes', {method: 'POST', body: request,});
+    return apiRequest<AthleteProfile>('/athletes', {method: 'POST', body: request});
 }
 
 export function updateAthleteProfile(athleteId: string, request: UpdateAthleteProfileRequest): Promise<AthleteProfile> {
