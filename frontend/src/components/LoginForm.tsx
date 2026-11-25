@@ -95,9 +95,7 @@ export default function LoginForm(props: {onLoggedIn: (account: UserAccount) => 
                 </button>
             </div>
 
-            {submission.status === 'error' && (
-                <p role="alert">{submission.message}</p>
-            )}
+            {submission.status === 'error' && (<p role="alert">{submission.message}</p>)}
         </form>
     );
 }
