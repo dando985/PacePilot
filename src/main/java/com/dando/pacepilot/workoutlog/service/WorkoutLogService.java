@@ -81,11 +81,17 @@ public class WorkoutLogService {
     }
 
     public WorkoutLog getLogById(UUID logId) {
-        return logRepository.findById(logId).orElseThrow(() -> new WorkoutLogNotFoundException(logId));
+        UUID athleteId = profileService.getCurrentProfile().id();
+
+        return logRepository.findById(logId)
+                .filter(log -> log.athleteProfileId().equals(athleteId))
+                .orElseThrow(() -> new WorkoutLogNotFoundException(logId));
     }
 
     public List<WorkoutLog> findLogsByAthleteId(UUID athleteId) {
+        // check profile ownership before querying logs
         profileService.getProfileById(athleteId);
+
         return logRepository.findByAthleteProfileId(athleteId);
     }
 
@@ -104,7 +110,7 @@ public class WorkoutLogService {
                 .map(PlannedWorkout::id)
                 .collect(Collectors.toSet());
 
-        return logRepository.findByAthleteProfileId(plan.athleteProfileId())
+        return findLogsByAthleteId(plan.athleteProfileId())
                 .stream()
                 .filter(log -> log.athleteProfileId().equals(plan.athleteProfileId()))
                 .filter(log -> workoutIds.contains(log.plannedWorkoutId()))
