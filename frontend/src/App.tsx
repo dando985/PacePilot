@@ -1,18 +1,28 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 
-import {getAthleteProfiles} from './api/athletes';
+import {getCurrentAccount, logout} from './api/auth';
+import {getCurrentAthleteProfile} from './api/athletes';
 import {ApiError} from './api/client';
 import CreateAthleteProfileForm from './components/CreateAthleteProfileForm';
 import EditAthleteProfileForm from './components/EditAthleteProfileForm';
+import LoginForm from './components/LoginForm';
+import RegisterForm from './components/RegisterForm';
 import TrainingPlansPanel from './components/TrainingPlansPanel';
 
-import type {AthleteProfile, ExperienceLevel, Gender} from './api/types';
+import type {AthleteProfile, ExperienceLevel, Gender, UserAccount} from './api/types';
 
 import './App.css';
 
+type SessionState =
+    | {status: 'loading'}
+    | {status: 'anonymous'}
+    | {status: 'authenticated'; account: UserAccount}
+    | {status: 'signingOut'}
+    | {status: 'error'; message: string; retry: 'session' | 'logout'};
+
 type ProfileState =
     | {status: 'loading'}
-    | {status: 'success'; profiles: AthleteProfile[]}
+    | {status: 'success'; profile: AthleteProfile | null}
     | {status: 'error'; message: string};
 
 const genderLabels: Record<Gender, string> = {
@@ -30,158 +40,247 @@ const experienceLabels: Record<ExperienceLevel, string> = {
 };
 
 export default function App() {
-  const [profileState, setProfileState] = useState<ProfileState>({status: 'loading'});
-  const [reloadCount, setReloadCount] = useState(0);
-  const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
-  const [editingAthleteId, setEditingAthleteId] = useState<string | null>(null);
-  const [profileMessage, setProfileMessage] = useState<string | null>(null);
+  const [session, setSession] = useState<SessionState>({status: 'loading'});
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [sessionReload, setSessionReload] = useState(0);
+  const logoutPending = useRef(false);
 
-  // Load athlete profiles when the component mounts or when reloadCount changes.
   useEffect(() => {
     const controller = new AbortController();
 
-    // Function to load athlete profiles from the API.
-    async function loadProfiles() {
+    async function loadSession() {
       try {
-        // Fetch athlete profiles from the API.
-        const profiles = await getAthleteProfiles(controller.signal);
+        const account = await getCurrentAccount(controller.signal);
 
         if (!controller.signal.aborted) {
-          setProfileState({status: 'success', profiles,});
-
-          // Ensure that the selected and editing athlete IDs are still valid after reloading profiles.
-          setSelectedAthleteId((currentId) =>
-              profiles.some((profile) => profile.id === currentId) ? currentId : null
-          );
-
-          setEditingAthleteId((currentId) =>
-              profiles.some((profile) => profile.id === currentId) ? currentId : null
-          );
+          setSession(account === null ? {status: 'anonymous'} : {status: 'authenticated', account});
         }
-      } catch (error: unknown) {
-        if (controller.signal.aborted) {
-          return;
+      } catch {
+        if (!controller.signal.aborted) {
+          setSession({status: 'error', message: 'Unable to check your session. Please try again.', retry: 'session'});
         }
-
-        setProfileState({
-          status: 'error',
-          message: error instanceof ApiError ? error.message : 'Unable to load athlete profiles. Please try again.',});
       }
     }
 
-    // Call the function to load athlete profiles.
-    void loadProfiles();
+    void loadSession();
 
-    // Cleanup function to abort the fetch request if the component unmounts or reloadCount changes.
-    return () => {controller.abort();};
-  }, [reloadCount]);
+    return () => controller.abort();
+  }, [sessionReload]);
 
-  // Function to reload athlete profiles by incrementing the reloadCount state.
-  function reloadProfiles() {
-    setEditingAthleteId(null);
-    setProfileMessage(null);
-    setProfileState({status: 'loading'});
-    setReloadCount((count) => count + 1);
-  }
-
-  function startEditingProfile(athleteId: string) {
-    setProfileMessage(null);
-    setEditingAthleteId(athleteId);
-  }
-
-  function handleProfileUpdated(updatedProfile: AthleteProfile) {
-    setProfileState((current) => {
-      if (current.status !== 'success') {
-        return current;
+  const handleSessionExpired = useCallback((accountId: string) => {
+    setSession((current) => {
+      if (current.status === 'authenticated' && current.account.id === accountId) {
+        return {status: 'anonymous'};
       }
 
-      return {
-        ...current,
-        profiles: current.profiles.map((profile) => profile.id === updatedProfile.id ? updatedProfile : profile)
-      };
+      return current;
     });
+  }, []);
 
-    setEditingAthleteId((currentId) => currentId === updatedProfile.id ? null : currentId);
+  function reloadSession() {
+    if (logoutPending.current) {
+      return;
+    }
 
-    setProfileMessage(`Updated profile for ${updatedProfile.displayName}.`);
-    setReloadCount((count) => count + 1);
+    setSession({status: 'loading'});
+    setSessionReload((count) => count + 1);
   }
 
-  const editingProfile = profileState.status === 'success'
-      ? profileState.profiles.find((profile) => profile.id === editingAthleteId) : undefined;
+  function handleLoggedIn(account: UserAccount) {
+    setAuthMode('login');
+    setSession({status: 'authenticated', account});
+  }
+
+  async function handleLogout() {
+    if (logoutPending.current) {
+      return;
+    }
+
+    logoutPending.current = true;
+    setSession({status: 'signingOut'});
+
+    try {
+      await logout();
+      setAuthMode('login');
+      setSession({status: 'anonymous'});
+    } catch {
+      setSession({status: 'error', message: 'Unable to confirm sign-out. Please try again.', retry: 'logout'});
+    } finally {
+      logoutPending.current = false;
+    }
+  }
+
+  function retrySessionRequest() {
+    if (session.status === 'error' && session.retry === 'logout') {
+      void handleLogout();
+    } else {
+      reloadSession();
+    }
+  }
+
+  const account = session.status === 'authenticated' ? session.account : null;
 
   return (
       <main className="app">
         <header className="app-header">
           <div>
             <p className="app-name">PacePilot</p>
-            <h1>Athlete profiles</h1>
+            <h1>Your training</h1>
           </div>
 
-          <button type="button" onClick={reloadProfiles} disabled={profileState.status === 'loading'}>
-            {profileState.status === 'error' ? 'Retry' : 'Refresh'}
-          </button>
+          {account !== null && (
+              <div className="account-controls">
+                <span>{account.email}</span>
+
+                <button type="button" onClick={reloadSession}>
+                  Refresh
+                </button>
+
+                <button type="button" onClick={() => void handleLogout()}>
+                  Sign out
+                </button>
+              </div>
+          )}
         </header>
 
-        <CreateAthleteProfileForm onCreated={reloadProfiles}/>
+        {session.status === 'loading' && (<p role="status">Checking your session...</p>)}
+
+        {session.status === 'signingOut' && (<p role="status">Signing out...</p>)}
+
+        {session.status === 'error' && (
+            <section>
+              <p role="alert">{session.message}</p>
+
+              <button type="button" onClick={retrySessionRequest}>
+                {session.retry === 'logout' ? 'Retry sign out' : 'Retry'}
+              </button>
+            </section>
+        )}
+
+        {session.status === 'anonymous' && (authMode === 'login' ? (
+                <LoginForm onLoggedIn={handleLoggedIn} onShowRegistration={() => setAuthMode('register')}/>)
+                : (<RegisterForm onShowLogin={() => setAuthMode('login')}/>
+                )
+        )}
+
+        {account !== null && (
+            <AthleteDashboard key={account.id} accountId={account.id} onSessionExpired={handleSessionExpired}/>
+        )}
+      </main>
+  );
+}
+
+function AthleteDashboard(props: {accountId: string; onSessionExpired: (accountId: string) => void;}) {
+  const [profileState, setProfileState] = useState<ProfileState>({status: 'loading'});
+  const [reloadCount, setReloadCount] = useState(0);
+  const [editing, setEditing] = useState(false);
+  const [profileMessage, setProfileMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadProfile() {
+      try {
+        const profile = await getCurrentAthleteProfile(controller.signal);
+
+        if (!controller.signal.aborted) {
+          setProfileState({status: 'success', profile});
+        }
+      } catch (error: unknown) {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        if (error instanceof ApiError && error.status === 401) {
+          props.onSessionExpired(props.accountId);
+          return;
+        }
+
+        setProfileState({
+          status: 'error',
+          message: 'Unable to load your athlete profile. Please try again.',
+        });
+      }
+    }
+
+    void loadProfile();
+
+    return () => controller.abort();
+  }, [props.accountId, props.onSessionExpired, reloadCount]);
+
+  function reloadProfile() {
+    setEditing(false);
+    setProfileMessage(null);
+    setProfileState({status: 'loading'});
+    setReloadCount((count) => count + 1);
+  }
+
+  function handleProfileUpdated(profile: AthleteProfile) {
+    setProfileState({status: 'success', profile});
+    setEditing(false);
+    setProfileMessage(`Updated profile for ${profile.displayName}.`);
+  }
+
+  const profile = profileState.status === 'success' ? profileState.profile : null;
+
+  return (
+      <section className="athlete-dashboard" aria-label="Athlete dashboard">
+        {profileState.status === 'loading' && (<p role="status">Loading your athlete profile...</p>)}
+
+        {profileState.status === 'error' && (
+            <div>
+              <p role="alert">{profileState.message}</p>
+
+              <button type="button" onClick={reloadProfile}>
+                Retry profile
+              </button>
+            </div>
+        )}
 
         {profileMessage !== null && (<p role="status" className="profile-update-message">{profileMessage}</p>)}
 
-        {profileState.status === 'loading' && (<p role="status">Loading athlete profiles...</p>)}
+        {profileState.status === 'success' && profile === null && (<CreateAthleteProfileForm onCreated={reloadProfile}/>)}
 
-        {profileState.status === 'error' && (<p role="alert">{profileState.message}</p>)}
+        {profile !== null && (
+            <>
+              <article className="profile-card">
+                <h2>{profile.displayName}</h2>
 
-        {profileState.status === 'success' && (
-            profileState.profiles.length === 0 ? (
-                <p>No athlete profiles yet.</p>
-            ) : (
-                <ul className="profile-list">
-                  {profileState.profiles.map((profile) => (
-                      <li key={profile.id} className="profile-card">
-                        <h2>{profile.displayName}</h2>
+                <p>
+                  Birth date:{' '}
+                  <time dateTime={profile.birthDate}>
+                    {profile.birthDate}
+                  </time>
+                </p>
 
-                        <p>
-                          Birth date:{' '}
-                          <time dateTime={profile.birthDate}>
-                            {profile.birthDate}
-                          </time>
-                        </p>
+                <p>
+                  Weight: {profile.weight}{' '}
+                  {profile.weightUnit === 'KILOGRAMS' ? 'kg' : 'lb'}
+                </p>
 
-                        <p>
-                          Weight: {profile.weight}{' '}
-                          {profile.weightUnit === 'KILOGRAMS' ? 'kg' : 'lb'}
-                        </p>
+                <p>Gender: {genderLabels[profile.gender]}</p>
 
-                        <p>Gender: {genderLabels[profile.gender]}</p>
+                <p>
+                  Experience: {experienceLabels[profile.experienceLevel]}
+                </p>
 
-                        <p>
-                          Experience: {experienceLabels[profile.experienceLevel]}
-                        </p>
+                {!editing && (
+                    <div className="profile-card-actions">
+                      <button type="button" onClick={() => {setProfileMessage(null);setEditing(true);}}>
+                        Edit profile
+                      </button>
+                    </div>
+                )}
+              </article>
 
-                        <div className="profile-card-actions">
-                          <button type="button" onClick={() => startEditingProfile(profile.id)}>
-                            Edit profile
-                          </button>
+              {editing && (<EditAthleteProfileForm key={profile.id} profile={profile} onUpdated={handleProfileUpdated}
+                                                   onCancel={() => setEditing(false)}
+                  />
+              )}
 
-                          <button type="button" onClick={() => setSelectedAthleteId(profile.id)}
-                                  aria-pressed={selectedAthleteId === profile.id}
-                          >
-                            View training plans
-                          </button>
-                        </div>
-                      </li>
-                  ))}
-                </ul>
-            )
+              <TrainingPlansPanel key={profile.id} athleteId={profile.id}/>
+            </>
         )}
-
-        {editingProfile !== undefined && (
-            <EditAthleteProfileForm key={editingProfile.id} profile={editingProfile} onUpdated={handleProfileUpdated}
-                onCancel={() => setEditingAthleteId(null)}
-            />
-        )}
-
-        {selectedAthleteId !== null && (<TrainingPlansPanel key={selectedAthleteId} athleteId={selectedAthleteId}/>)}
-      </main>
+      </section>
   );
 }
