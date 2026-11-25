@@ -2,15 +2,14 @@ package com.dando.pacepilot.athlete.repository;
 
 import com.dando.pacepilot.athlete.domain.AthleteProfile;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface AthleteProfileRepository {
 
-    AthleteProfile save(AthleteProfile profile);
+    AthleteProfile save(AthleteProfile profile, UUID ownerAccountId);
 
-    Optional<AthleteProfile> findById(UUID id);
+    Optional<AthleteProfile> findByIdAndOwnerAccountId(UUID id, UUID ownerAccountId);
 
-    List<AthleteProfile> findAll();
+    Optional<AthleteProfile> findByOwnerAccountId(UUID ownerAccountId);
 }
