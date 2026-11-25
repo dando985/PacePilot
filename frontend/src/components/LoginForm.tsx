@@ -10,8 +10,10 @@ type SubmissionState =
     | {status: 'submitting'}
     | {status: 'error'; message: string};
 
-export default function LoginForm(props: {onLoggedIn: (account: UserAccount) => void; onShowRegistration: () => void}) {
+export default function LoginForm(props: { onLoggedIn: (account: UserAccount) => void; onShowRegistration: () => void; }) {
     const [submission, setSubmission] = useState<SubmissionState>({status: 'idle'});
+    const [showPassword, setShowPassword] = useState(false);
+
     const pending = useRef(false);
     const submitting = submission.status === 'submitting';
 
@@ -38,12 +40,15 @@ export default function LoginForm(props: {onLoggedIn: (account: UserAccount) => 
             await login({email, password});
             account = await getCurrentAccount();
         } catch (error: unknown) {
-            setSubmission({
-                status: 'error',
-                message:
-                    error instanceof ApiError && error.status === 401
-                        ? 'Email or password is incorrect.' : 'Unable to confirm sign-in. Please try again.',
-            });
+            let message = 'Unable to confirm sign-in. Please try again.';
+
+            if (error instanceof ApiError && error.status === 401) {
+                message = 'Email or password is incorrect. Check your details and try again.';
+            } else if (error instanceof TypeError) {
+                message = 'Unable to reach PacePilot. Check your connection and try again.';
+            }
+
+            setSubmission({status: 'error', message});
             return;
         } finally {
             pending.current = false;
@@ -55,17 +60,23 @@ export default function LoginForm(props: {onLoggedIn: (account: UserAccount) => 
         }
 
         form.reset();
+        setShowPassword(false);
         setSubmission({status: 'idle'});
         props.onLoggedIn(account);
     }
 
     return (
         <form className="auth-form" aria-label="Sign in" aria-busy={submitting} onSubmit={(event) => {
-                event.preventDefault();
-                void handleSubmit(event.currentTarget);
-            }}
+                event.preventDefault();void handleSubmit(event.currentTarget);
+        }}
         >
-            <h2>Sign in</h2>
+            <h2>Welcome back.</h2>
+
+            <p>
+                Sign in to view your plans, track your runs, and keep training!
+            </p>
+
+            {submission.status === 'error' && (<p role="alert">{submission.message}</p>)}
 
             <fieldset disabled={submitting}>
                 <legend>Account details</legend>
@@ -73,16 +84,23 @@ export default function LoginForm(props: {onLoggedIn: (account: UserAccount) => 
                 <p>
                     <label>
                         Email
-                        <input name="email" type="email" autoComplete="username" maxLength={254} required/>
+                        <input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false}
+                            maxLength={254} required/>
                     </label>
                 </p>
 
                 <p>
                     <label>
                         Password
-                        <input name="password" type="password" autoComplete="current-password" required/>
+                        <input id="login-password" name="password" type={showPassword ? 'text' : 'password'}
+                            autoComplete="current-password" required/>
                     </label>
                 </p>
+
+                <button className="password-toggle" type="button" aria-controls="login-password"
+                        onClick={() => setShowPassword((current) => !current)}>
+                    {showPassword ? 'Hide password' : 'Show password'}
+                </button>
             </fieldset>
 
             <div className="auth-form-actions">
@@ -94,8 +112,6 @@ export default function LoginForm(props: {onLoggedIn: (account: UserAccount) => 
                     Create an account
                 </button>
             </div>
-
-            {submission.status === 'error' && (<p role="alert">{submission.message}</p>)}
         </form>
     );
 }

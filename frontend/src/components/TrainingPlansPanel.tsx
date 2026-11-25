@@ -43,6 +43,10 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
     const [planMessage, setPlanMessage] = useState<string | null>(null);
     const [showArchived, setShowArchived] = useState(false);
     const [archiveState, setArchiveState] = useState<ArchiveState>({status: 'idle'});
+    const [showGenerationForm, setShowGenerationForm] = useState(false);
+    const [generationFormVersion, setGenerationFormVersion] = useState(0);
+
+    const generationFormId = `plan-generation-${props.athleteId}`;
 
     const archivePending = useRef(false);
     const archiving = archiveState.status === 'saving';
@@ -93,6 +97,13 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
             current.status === 'saving' ? current : {status: 'idle'}
         );
         setPlanState({status: 'loading'});
+        setReloadCount((count) => count + 1);
+    }
+
+    function handlePlanGenerated() {
+        setShowGenerationForm(false);
+        setGenerationFormVersion((version) => version + 1);
+        setPlanMessage('New plan generated');
         setReloadCount((count) => count + 1);
     }
 
@@ -216,19 +227,28 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
             <header className="training-plans-header">
                 <h2>Training plans</h2>
 
-                <button
-                    type="button"
-                    onClick={reloadPlans}
-                    disabled={planState.status === 'loading' || archiving}
-                >
-                    {planState.status === 'error' ? 'Retry' : 'Refresh'}
-                </button>
+                <div className="plan-form-actions">
+                    <button type="button" onClick={reloadPlans} disabled={planState.status === 'loading' || archiving}>
+                        {planState.status === 'error' ? 'Retry' : 'Refresh'}
+                    </button>
+
+                    <button type="button" aria-expanded={showGenerationForm} aria-controls={generationFormId}
+                        onClick={() => setShowGenerationForm((current) => !current)}
+                            disabled={archiving}
+                    >
+                        <span aria-hidden="true">
+                            {showGenerationForm ? '−' : '+'}
+                        </span>
+                        {showGenerationForm ? 'Hide form' : 'New plan'}
+                    </button>
+                </div>
             </header>
 
-            <GenerateTrainingPlanForm
-                athleteId={props.athleteId}
-                onGenerated={reloadPlans}
-            />
+            <section id={generationFormId} aria-label="New training plan" hidden={!showGenerationForm}>
+                <GenerateTrainingPlanForm key={generationFormVersion} athleteId={props.athleteId}
+                                          onGenerated={handlePlanGenerated}
+                />
+            </section>
 
             {planMessage !== null && (
                 <p role="status" className="plan-update-message">
@@ -270,7 +290,7 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                 visiblePlans.length === 0 ? (
                     <p>
                         {planState.plans.length === 0
-                            ? 'No training plans yet for this athlete.'
+                            ? 'No training plans yet. Choose New plan to create your first one.'
                             : 'No active training plans. Select "Show archived plans" to view or restore archived plans.'}
                     </p>
                 ) : (
@@ -326,10 +346,7 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                                     Preferred distance unit: {distanceLabels[plan.distanceUnit]}
                                 </p>
 
-                                <TrainingPlanProgressSummary
-                                    plan={plan}
-                                    logs={planState.logs}
-                                />
+                                <TrainingPlanProgressSummary plan={plan} logs={planState.logs}/>
 
                                 <details>
                                     <summary>View workouts</summary>
