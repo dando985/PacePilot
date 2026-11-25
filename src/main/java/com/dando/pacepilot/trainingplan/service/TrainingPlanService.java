@@ -39,15 +39,24 @@ public class TrainingPlanService {
     }
 
     public TrainingPlan renamePlan(UUID planId, RenameTrainingPlanRequest request) {
+        // verify athlete profile ownership of plan before rename
+        getPlanById(planId);
+
         return planRepository.rename(planId, request.name()).orElseThrow(() -> new TrainingPlanNotFoundException(planId));
     }
 
     public TrainingPlan setArchived(UUID planId, UpdateTrainingPlanArchiveRequest request) {
+        // verify athlete profile ownership of plan before archiving
+        getPlanById(planId);
+
         return planRepository.setArchived(planId, request.archived()).orElseThrow(() -> new TrainingPlanNotFoundException(planId));
     }
 
     public TrainingPlan getPlanById(UUID planId) {
+        UUID athleteId = profileService.getCurrentProfile().id();
+
         return planRepository.findById(planId)
+                .filter(plan -> plan.athleteProfileId().equals(athleteId))
                 .orElseThrow(() -> new TrainingPlanNotFoundException(planId));
     }
 
