@@ -1,26 +1,42 @@
 package com.dando.pacepilot.athlete.service;
 
+import com.dando.pacepilot.account.service.UserAccountService;
 import com.dando.pacepilot.athlete.api.CreateAthleteProfileRequest;
 import com.dando.pacepilot.athlete.api.UpdateAthleteProfileRequest;
 import com.dando.pacepilot.athlete.domain.AthleteProfile;
 import com.dando.pacepilot.athlete.exception.AthleteProfileNotFoundException;
 import com.dando.pacepilot.athlete.repository.AthleteProfileRepository;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
 public class AthleteProfileService {
 
-    private final AthleteProfileRepository profileRepository;
+    private static final String DUPLICATE_PROFILE_MESSAGE = "This account already has an athlete profile.";
 
-    public AthleteProfileService(AthleteProfileRepository profileRepository) {
+    private final AthleteProfileRepository profileRepository;
+    private final UserAccountService accountService;
+
+    public AthleteProfileService(AthleteProfileRepository profileRepository, UserAccountService accountService) {
         this.profileRepository = profileRepository;
+        this.accountService = accountService;
     }
 
+    @Transactional
     public AthleteProfile createProfile(CreateAthleteProfileRequest request) {
+        UUID ownerAccountId = accountService.getCurrentAccount().id();
+
+        // only allow one profile per account
+        if (profileRepository.findByOwnerAccountId(ownerAccountId).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, DUPLICATE_PROFILE_MESSAGE);
+        }
+
         AthleteProfile profile = new AthleteProfile(
                 UUID.randomUUID(),
                 request.displayName(),
@@ -31,12 +47,21 @@ public class AthleteProfileService {
                 request.experienceLevel()
         );
 
-        return profileRepository.save(profile);
+        try {
+            return profileRepository.save(profile, ownerAccountId);
+        } catch (DataIntegrityViolationException exception) {
+            if (isDuplicateOwner(exception)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, DUPLICATE_PROFILE_MESSAGE, exception);
+            }
+
+            throw exception;
+        }
     }
 
     @Transactional
     public AthleteProfile updateProfile(UUID id, UpdateAthleteProfileRequest request) {
-        AthleteProfile existingProfile = getProfileById(id);
+        UUID ownerAccountId = accountService.getCurrentAccount().id();
+        AthleteProfile existingProfile = findOwnedProfile(id, ownerAccountId);
 
         AthleteProfile updatedProfile = new AthleteProfile(
                 existingProfile.id(),
@@ -48,14 +73,48 @@ public class AthleteProfileService {
                 request.experienceLevel()
         );
 
-        return profileRepository.save(updatedProfile);
+        return profileRepository.save(updatedProfile, ownerAccountId);
     }
 
+    @Transactional(readOnly = true)
     public AthleteProfile getProfileById(UUID id) {
-        return profileRepository.findById(id).orElseThrow(() -> new AthleteProfileNotFoundException(id));
+        UUID ownerAccountId = accountService.getCurrentAccount().id();
+
+        return findOwnedProfile(id, ownerAccountId);
     }
 
-    public List<AthleteProfile> findAllProfiles() {
-        return profileRepository.findAll();
+    @Transactional(readOnly = true)
+    public AthleteProfile getCurrentProfile() {
+        UUID ownerAccountId = accountService.getCurrentAccount().id();
+
+        return profileRepository
+                .findByOwnerAccountId(ownerAccountId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "No athlete profile has been created for this account."
+                ));
+    }
+
+    // helper to check that the account ID matches with the profile ID
+    private AthleteProfile findOwnedProfile(UUID id, UUID ownerAccountId) {
+        return profileRepository
+                .findByIdAndOwnerAccountId(id, ownerAccountId)
+                .orElseThrow(() -> new AthleteProfileNotFoundException(id));
+    }
+
+    // helper to ensure that there is only one profile per account
+    private boolean isDuplicateOwner(DataIntegrityViolationException exception) {
+        Throwable cause = exception;
+
+        while (cause != null) {
+            if (cause instanceof ConstraintViolationException violation
+                    && "athlete_profiles_owner_account_unique".equals(violation.getConstraintName())) {
+                return true;
+            }
+
+            cause = cause.getCause();
+        }
+
+        return false;
     }
 }
