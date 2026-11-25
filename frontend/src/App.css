@@ -204,6 +204,7 @@ html body {
   .plan-form-actions,
   .workout-log-form-actions
 ) > button[type="button"]:not(:disabled),
+.auth-form .password-toggle:not(:disabled),
 .auth-form-actions > button[type="button"]:not(:only-child):not(:disabled) {
   border-color: var(--color-border);
   background: transparent;
@@ -222,6 +223,7 @@ html body {
   .plan-form-actions,
   .workout-log-form-actions
 ) > button[type="button"]:hover:not(:disabled),
+.auth-form .password-toggle:hover:not(:disabled),
 .auth-form-actions > button[type="button"]:not(:only-child):hover:not(:disabled) {
   border-color: #567040;
   background: var(--color-raised);
@@ -385,7 +387,7 @@ html body {
   gap: 0.75rem;
 }
 
-/* Authentication layout */
+/* Authentication screens */
 .app:has(> .auth-form) {
   display: grid;
   grid-template-columns: minmax(0, 1.04fr) minmax(20rem, 0.96fr);
@@ -435,7 +437,6 @@ html body {
   text-wrap: initial;
 }
 
-/* Decorative running-track lines */
 .app:has(> .auth-form) > .app-header::before {
   content: "";
   position: absolute;
@@ -469,7 +470,6 @@ html body {
   pointer-events: none;
 }
 
-/* Login and registration forms */
 .auth-form {
   position: relative;
   width: 100%;
@@ -509,6 +509,21 @@ html body {
 
 .auth-form input {
   min-height: 3.25rem;
+}
+
+.auth-form .password-toggle {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 2.75rem;
+  margin: 0 0 0 auto;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.auth-form .password-toggle:hover:not(:disabled) {
+  transform: none;
 }
 
 .auth-form-actions {

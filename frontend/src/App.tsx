@@ -39,6 +39,11 @@ const experienceLabels: Record<ExperienceLevel, string> = {
   ADVANCED: 'Advanced',
 };
 
+const birthDateFormatter = new Intl.DateTimeFormat(undefined, {
+  dateStyle: 'medium',
+  timeZone: 'UTC',
+});
+
 export default function App() {
   const [session, setSession] = useState<SessionState>({status: 'loading'});
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
@@ -125,7 +130,9 @@ export default function App() {
         <header className="app-header">
           <div>
             <p className="app-name">PacePilot</p>
-            <h1>Your training</h1>
+            <h1>
+              {account === null ? 'Find your pace.' : 'Your training overview'}
+            </h1>
           </div>
 
           {account !== null && (
@@ -247,21 +254,36 @@ function AthleteDashboard(props: {accountId: string; onSessionExpired: (accountI
                 <h2>{profile.displayName}</h2>
 
                 <p>
-                  Birth date:{' '}
-                  <time dateTime={profile.birthDate}>
-                    {profile.birthDate}
-                  </time>
+                  Birth date
+                  <br/>
+                  <strong>
+                    <time dateTime={profile.birthDate}>
+                      {birthDateFormatter.format(new Date(`${profile.birthDate}T00:00:00Z`))}
+                    </time>
+                  </strong>
                 </p>
 
                 <p>
-                  Weight: {profile.weight}{' '}
-                  {profile.weightUnit === 'KILOGRAMS' ? 'kg' : 'lb'}
+                  Weight
+                  <br/>
+                  <strong>
+                    {profile.weight}{' '}
+                    {profile.weightUnit === 'KILOGRAMS' ? 'kg' : 'lb'}
+                  </strong>
                 </p>
 
-                <p>Gender: {genderLabels[profile.gender]}</p>
+                <p>
+                  Gender
+                  <br/>
+                  <strong>{genderLabels[profile.gender]}</strong>
+                </p>
 
                 <p>
-                  Experience: {experienceLabels[profile.experienceLevel]}
+                  Experience
+                  <br/>
+                  <strong>
+                    {experienceLabels[profile.experienceLevel]}
+                  </strong>
                 </p>
 
                 {!editing && (
@@ -274,9 +296,7 @@ function AthleteDashboard(props: {accountId: string; onSessionExpired: (accountI
               </article>
 
               {editing && (<EditAthleteProfileForm key={profile.id} profile={profile} onUpdated={handleProfileUpdated}
-                                                   onCancel={() => setEditing(false)}
-                  />
-              )}
+                                                   onCancel={() => setEditing(false)}/>)}
 
               <TrainingPlansPanel key={profile.id} athleteId={profile.id}/>
             </>
