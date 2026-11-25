@@ -13,6 +13,8 @@ type SubmissionState =
 
 export default function RegisterForm(props: {onShowLogin: () => void}) {
     const [submission, setSubmission] = useState<SubmissionState>({status: 'idle'});
+    const [showPasswords, setShowPasswords] = useState(false);
+
     const pending = useRef(false);
     const submitting = submission.status === 'submitting';
 
@@ -41,7 +43,8 @@ export default function RegisterForm(props: {onShowLogin: () => void}) {
         }
 
         if (new TextEncoder().encode(password).length > 72) {
-            showError('Password is too long. Some characters, such as emoji, take more space. Try a shorter password.');
+            showError(
+                'Password is too long. Some characters, such as emoji, take more space. Try a shorter password.');
             return;
         }
 
@@ -67,13 +70,15 @@ export default function RegisterForm(props: {onShowLogin: () => void}) {
         }
 
         form.reset();
+        setShowPasswords(false);
         setSubmission({status: 'success', message: `Account created for ${account.email}. Sign in to continue.`});
     }
 
     if (submission.status === 'success') {
         return (
             <section className="auth-form" aria-label="Account created">
-                <h2>Account created</h2>
+                <h2>Account created.</h2>
+
                 <p role="status">{submission.message}</p>
 
                 <div className="auth-form-actions">
@@ -86,13 +91,16 @@ export default function RegisterForm(props: {onShowLogin: () => void}) {
     }
 
     return (
-        <form className="auth-form" aria-label="Create account" aria-busy={submitting}
-              onSubmit={(event) => {
-                event.preventDefault();
-                void handleSubmit(event.currentTarget);
-            }}
-        >
-            <h2>Create account</h2>
+        <form className="auth-form" aria-label="Create account" aria-busy={submitting} onSubmit={(event) => {
+                event.preventDefault();void handleSubmit(event.currentTarget);}}>
+            <h2>Create your account.</h2>
+
+            <p>
+                Create a PacePilot account to build training plans, log your runs,
+                and get coaching along the way.
+            </p>
+
+            {submission.status === 'error' && (<p role="alert">{submission.message}</p>)}
 
             <fieldset disabled={submitting}>
                 <legend>Account details</legend>
@@ -100,29 +108,36 @@ export default function RegisterForm(props: {onShowLogin: () => void}) {
                 <p>
                     <label>
                         Email
-                        <input name="email" type="email" autoComplete="username" maxLength={254} required/>
+                        <input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false}
+                            maxLength={254} required/>
                     </label>
                 </p>
 
                 <p>
                     <label>
                         Password
-                        <input name="password" type="password" autoComplete="new-password" minLength={6}
-                            aria-describedby="register-password-help" required
-                        />
+                        <input id="register-password" name="password" type={showPasswords ? 'text' : 'password'}
+                            autoComplete="new-password" autoCapitalize="none" spellCheck={false} minLength={6}
+                            aria-describedby="register-password-help" required/>
                     </label>
                 </p>
 
                 <p id="register-password-help">
-                    Use 6–72 characters.
+                    The password should be 6 to 72 characters long.
                 </p>
 
                 <p>
                     <label>
                         Confirm password
-                        <input name="confirmPassword" type="password" autoComplete="new-password" required/>
+                        <input id="register-confirm-password" name="confirmPassword" type={showPasswords ? 'text' : 'password'}
+                            autoComplete="new-password" autoCapitalize="none" spellCheck={false} required/>
                     </label>
                 </p>
+
+                <button className="password-toggle" type="button" aria-controls="register-password register-confirm-password"
+                    onClick={() => setShowPasswords((current) => !current)}>
+                    {showPasswords ? 'Hide passwords' : 'Show passwords'}
+                </button>
             </fieldset>
 
             <div className="auth-form-actions">
@@ -134,8 +149,6 @@ export default function RegisterForm(props: {onShowLogin: () => void}) {
                     Back to sign in
                 </button>
             </div>
-
-            {submission.status === 'error' && (<p role="alert">{submission.message}</p>)}
         </form>
     );
 }
