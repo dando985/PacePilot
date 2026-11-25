@@ -3,7 +3,12 @@
 
 const API_BASE_URL = '/api';
 
-type ApiRequestOptions = Omit<RequestInit, 'body'> & {body?: unknown;};
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS', 'TRACE']);
+
+type ApiRequestOptions = Omit<RequestInit, 'body' | 'credentials'> & {body?: unknown};
+
+type CsrfToken = {headerName: string; token: string};
+
 
 export class ApiError extends Error {
     readonly status: number;
@@ -18,29 +23,76 @@ export class ApiError extends Error {
 export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
     // Destructure the options to separate the body and headers (renamed to providedHeaders) from other request options.
     const {body, headers: providedHeaders, ...requestOptions} = options;
-
+    const method = (requestOptions.method ?? 'GET').toUpperCase();
     const headers = new Headers(providedHeaders);
 
     if (!headers.has('Accept')) {
         headers.set('Accept', 'application/json, application/problem+json');
     }
 
-    if (body !== undefined) {
-        headers.set('Content-Type', 'application/json');
+    let requestBody: string | undefined;
+
+    if (body instanceof URLSearchParams) {
+        requestBody = body.toString();
+
+        if (!headers.has('Content-Type')) {
+            headers.set('Content-Type', 'application/x-www-form-urlencoded;charset=UTF-8');
+        }
+    } else if (body !== undefined) {
+        requestBody = JSON.stringify(body);
+
+        if (!headers.has('Content-Type')) {
+            headers.set('Content-Type', 'application/json');
+        }
+    }
+
+    if (!SAFE_METHODS.has(method)) {
+        const csrf = await getCsrfToken(requestOptions.signal);
+        headers.set(csrf.headerName, csrf.token);
     }
 
     const response = await fetch(`${API_BASE_URL}${path}`, {
         ...requestOptions,
-        headers: headers,
-        body: body === undefined ? undefined : JSON.stringify(body),
+        method,
+        credentials: 'same-origin',
+        headers,
+        body: requestBody,
     });
 
     if (!response.ok) {
-        const message = await readErrorMessage(response);
-        throw new ApiError(response.status, message);
+        throw new ApiError(response.status, await readErrorMessage(response));
+    }
+
+    if (response.status === 204) {
+        return undefined as T;
     }
 
     return response.json() as Promise<T>;
+}
+
+async function getCsrfToken(signal: AbortSignal | null = null): Promise<CsrfToken> {
+    const response = await fetch(`${API_BASE_URL}/auth/csrf`, {
+        credentials: 'same-origin',     // lets browser send the session cookie through existing /api proxy
+        cache: 'no-store',
+        signal,
+        headers: {Accept: 'application/json'}
+    });
+
+    if (!response.ok) {
+        throw new ApiError(response.status, await readErrorMessage(response));
+    }
+
+    const data: unknown = await response.json();
+
+    if (!isRecord(data)
+        || typeof data.headerName !== 'string'
+        || data.headerName.trim().length === 0
+        || typeof data.token !== 'string'
+        || data.token.trim().length === 0) {
+        throw new Error('The server returned an invalid CSRF token.');
+    }
+
+    return {headerName: data.headerName, token: data.token};
 }
 
 async function readErrorMessage(response: Response): Promise<string> {

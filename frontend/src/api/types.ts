@@ -194,3 +194,19 @@ export interface RenameTrainingPlanRequest {
 export interface UpdateTrainingPlanArchiveRequest {
     archived: boolean;
 }
+
+export interface UserAccount {
+    id: string;
+    email: string;
+    createdAt: string;
+}
+
+export interface RegisterAccountRequest {
+    email: string;
+    password: string;
+}
+
+export interface LoginRequest {
+    email: string;
+    password: string;
+}
