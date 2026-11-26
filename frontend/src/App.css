@@ -62,6 +62,10 @@ html body {
   text-align: left;
 }
 
+.app:has(.training-workspace) {
+  max-width: 96rem;
+}
+
 .app :is(h1, h2, h3, h4, h5, h6) {
   color: var(--color-text);
   font-family: inherit;
@@ -653,6 +657,48 @@ html body {
   margin-top: 1rem;
 }
 
+/* Training workspace and assistant sidebar */
+.training-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(20rem, 27vw, 24rem);
+  align-items: start;
+  gap: 1.5rem;
+  min-width: 0;
+  margin-top: 2.5rem;
+}
+
+.training-workspace > .training-plans {
+  min-width: 0;
+  margin-top: 0;
+}
+
+.assistant-sidebar {
+  --sidebar-top: 9rem;
+
+  position: sticky;
+  top: var(--sidebar-top);
+  align-self: start;
+  min-width: 0;
+  min-height: 0;
+  max-height: calc(100dvh - var(--sidebar-top) - 4rem);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scroll-padding-block: 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: #536774 transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  background: var(--color-surface);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+}
+
+.assistant-sidebar > .training-assistant {
+  margin: 0;
+  border: 0;
+  border-radius: inherit;
+  box-shadow: none;
+}
+
 /* Training plans and plan generation */
 .training-plans {
   margin-top: 2.5rem;
@@ -1141,6 +1187,21 @@ html body {
   font-size: 0.875rem;
   line-height: 1.8;
   white-space: pre-wrap;
+}
+
+/* Narrow dashboard layout */
+@media (max-width: 1100px) {
+  .training-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .assistant-sidebar {
+    position: static;
+    top: auto;
+    max-height: none;
+    overflow: visible;
+    overscroll-behavior: auto;
+  }
 }
 
 /* Tablet authentication layout */

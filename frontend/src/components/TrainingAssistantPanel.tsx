@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useId, useRef, useState} from 'react';
 
 import {askTrainingAssistant} from '../api/assistant';
 import {ApiError} from '../api/client';
@@ -23,20 +23,20 @@ export default function TrainingAssistantPanel(props: {athleteId: string; plans:
 
     return (
         <section className="training-assistant">
-            <h3>Training assistant</h3>
+            <h3>PacePilot assistant</h3>
 
             <p>
-                Ask questions using your profile and PacePilot's training knowledge.
-                Select a plan to include its goal, schedule, workout logs, and progress.
-                Detailed context focuses on nearby scheduled workouts and recent logs.
+                Ask about training, recovery, or nutrition. Choose a plan to include
+                your workouts and progress.
             </p>
 
             <p className="assistant-plan-picker">
                 <label>
-                    Plan context (optional)
-                    <select value={selectedPlanId ?? ''} onChange={(event) =>
-                        setPlanId(event.currentTarget.value)}>
-                        <option value="">General question (no plan)</option>
+                    Training plan (optional)
+                    <select value={selectedPlanId ?? ''}
+                        onChange={(event) => setPlanId(event.currentTarget.value)}>
+                        <option value="">General training question</option>
+
                         {availablePlans.map((plan) => (
                             <option key={plan.id} value={plan.id}>
                                 {plan.name}{plan.archived ? ' (archived)' : ''}{' '}
@@ -47,12 +47,14 @@ export default function TrainingAssistantPanel(props: {athleteId: string; plans:
                 </label>
             </p>
 
-            <AssistantQuestionForm key={`${props.athleteId}:${selectedPlanId ?? 'profile'}`} athleteId={props.athleteId} trainingPlanId={selectedPlanId}/>
+            <AssistantQuestionForm key={`${props.athleteId}:${selectedPlanId ?? 'profile'}`} athleteId={props.athleteId}
+                trainingPlanId={selectedPlanId}/>
         </section>
     );
 }
 
 function AssistantQuestionForm(props: {athleteId: string; trainingPlanId: string | null}) {
+    const questionHintId = useId();
     const [assistantState, setAssistantState] = useState<AssistantState>({status: 'idle'});
     const pending = useRef<AbortController | null>(null);
     const asking = assistantState.status === 'asking';
@@ -112,33 +114,32 @@ function AssistantQuestionForm(props: {athleteId: string; trainingPlanId: string
 
     return (
         <>
-            <form className="assistant-form" aria-busy={asking} onSubmit={(event) => {
+            <form className="assistant-form" aria-label="Ask PacePilot" aria-busy={asking}
+                  onSubmit={(event) => {
                     event.preventDefault();
                     void handleSubmit(event.currentTarget);
                 }}
             >
-                <fieldset disabled={asking}>
-                    <legend>Ask the assistant</legend>
+                <p>
+                    <label>
+                        Your question
+                        <textarea name="question" rows={3} maxLength={MAX_QUESTION_LENGTH} aria-describedby={questionHintId}
+                            placeholder={props.trainingPlanId === null
+                                ? 'How should an easy run feel?' : 'How many workouts have I completed in this plan?'}
+                            disabled={asking} required
+                        />
+                    </label>
 
-                    <p>
-                        <label>
-                            Question (up to {MAX_QUESTION_LENGTH} characters)
-                            <textarea name="question" rows={4} maxLength={MAX_QUESTION_LENGTH}
-                                      placeholder={
-                                          props.trainingPlanId === null
-                                              ? 'How should an easy run feel?' : 'How many workouts have I completed in this plan?'
-                                      }
-                                      required
-                            />
-                        </label>
-                    </p>
-                </fieldset>
+                    <small id={questionHintId}>
+                        Up to {MAX_QUESTION_LENGTH} characters.
+                    </small>
+                </p>
 
                 <button type="submit" disabled={asking}>
-                    {asking ? 'Generating...' : 'Ask assistant'}
+                    {asking ? 'Generating...' : 'Ask PacePilot'}
                 </button>
 
-                {assistantState.status === 'asking' && (<p role="status">Generating an answer...</p>)}
+                {assistantState.status === 'asking' && (<p role="status">Preparing your answer...</p>)}
 
                 {assistantState.status === 'error' && (<p role="alert">{assistantState.message}</p>)}
             </form>
@@ -156,13 +157,12 @@ function AssistantQuestionForm(props: {athleteId: string; trainingPlanId: string
                     </p>
 
                     <section className="assistant-sources">
-                        <h5>Retrieved sources</h5>
+                        <h5>Sources</h5>
 
                         {assistantState.response.sources.length === 0 ? (
                             <p>
-                                No training document passages were retrieved. Answers
-                                about your profile or selected plan can use your saved
-                                information.
+                                No document sources were returned. Answers can also
+                                use your saved profile and selected plan.
                             </p>
                         ) : (
                             assistantState.response.sources.map((source) => (
@@ -175,13 +175,9 @@ function AssistantQuestionForm(props: {athleteId: string; trainingPlanId: string
                                         {source.documentTitle?.trim() || 'Untitled document'}
                                     </summary>
 
-                                    {source.sectionTitle?.trim() && (
-                                        <p>Section: {source.sectionTitle}</p>
-                                    )}
+                                    {source.sectionTitle?.trim() && (<p>Section: {source.sectionTitle}</p>)}
 
-                                    {source.source?.trim() && (
-                                        <p>Source: {source.source}</p>
-                                    )}
+                                    {source.source?.trim() && (<p>Source: {source.source}</p>)}
 
                                     <p className="assistant-source-content">
                                         {source.content}

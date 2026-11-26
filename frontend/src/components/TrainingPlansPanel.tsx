@@ -13,9 +13,9 @@ import {ApiError} from '../api/client';
 import type {DistanceUnit, GoalType, TrainingPlan, WorkoutLog} from '../api/types';
 
 type PlanState =
-    | {status: 'loading'}
+    | {status: 'loading'; plans: TrainingPlan[]}
     | {status: 'success'; plans: TrainingPlan[]; logs: WorkoutLog[]}
-    | {status: 'error'; message: string};
+    | {status: 'error'; message: string; plans: TrainingPlan[]};
 
 type ArchiveState =
     | {status: 'idle'}
@@ -36,7 +36,7 @@ const distanceLabels: Record<DistanceUnit, string> = {
 };
 
 export default function TrainingPlansPanel(props: {athleteId: string}) {
-    const [planState, setPlanState] = useState<PlanState>({status: 'loading'});
+    const [planState, setPlanState] = useState<PlanState>({status: 'loading', plans: []});
     const [reloadCount, setReloadCount] = useState(0);
     const [renamingPlanId, setRenamingPlanId] = useState<string | null>(null);
     const [editingLogId, setEditingLogId] = useState<string | null>(null);
@@ -77,10 +77,13 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                     return;
                 }
 
-                setPlanState({
+                setPlanState((current) => ({
                     status: 'error',
-                    message: error instanceof ApiError ? error.message : 'Unable to load training plans and workout logs. Please try again.',
-                });
+                    plans: current.plans,
+                    message:
+                        error instanceof ApiError
+                            ? error.message : 'Unable to load training plans and workout logs. Please try again.',
+                }));
             }
         }
 
@@ -96,7 +99,7 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
         setArchiveState((current) =>
             current.status === 'saving' ? current : {status: 'idle'}
         );
-        setPlanState({status: 'loading'});
+        setPlanState((current) => ({status: 'loading', plans: current.plans}));
         setReloadCount((count) => count + 1);
     }
 
@@ -223,7 +226,8 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
     }
 
     return (
-        <section className="training-plans">
+        <div className="training-workspace">
+            <section className="training-plans">
             <header className="training-plans-header">
                 <h2>Training plans</h2>
 
@@ -244,6 +248,7 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                 </div>
             </header>
 
+
             <section id={generationFormId} aria-label="New training plan" hidden={!showGenerationForm}>
                 <GenerateTrainingPlanForm key={generationFormVersion} athleteId={props.athleteId}
                                           onGenerated={handlePlanGenerated}
@@ -256,13 +261,9 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                 </p>
             )}
 
-            {archiveState.status === 'saving' && (
-                <p role="status">Updating plan archive status...</p>
-            )}
+            {archiveState.status === 'saving' && (<p role="status">Updating plan archive status...</p>)}
 
-            {archiveState.status === 'error' && (
-                <p role="alert">{archiveState.message}</p>
-            )}
+            {archiveState.status === 'error' && (<p role="alert">{archiveState.message}</p>)}
 
             {planState.status === 'success' && planState.plans.length > 0 && (
                 <p className="plan-archive-filter">
@@ -278,13 +279,9 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                 </p>
             )}
 
-            {planState.status === 'loading' && (
-                <p role="status">Loading training plans and workout logs...</p>
-            )}
+            {planState.status === 'loading' && (<p role="status">Loading training plans and workout logs...</p>)}
 
-            {planState.status === 'error' && (
-                <p role="alert">{planState.message}</p>
-            )}
+            {planState.status === 'error' && (<p role="alert">{planState.message}</p>)}
 
             {planState.status === 'success' && (
                 visiblePlans.length === 0 ? (
@@ -455,7 +452,11 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                 )
             )}
 
-            {planState.status === 'success' && (<TrainingAssistantPanel athleteId={props.athleteId} plans={planState.plans}/>)}
-        </section>
+            </section>
+
+            <aside className="assistant-sidebar" aria-label="Training assistant">
+                <TrainingAssistantPanel athleteId={props.athleteId} plans={planState.plans}/>
+            </aside>
+        </div>
     );
 }
