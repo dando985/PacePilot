@@ -295,10 +295,11 @@ function AthleteDashboard(props: {accountId: string; onSessionExpired: (accountI
                 )}
               </article>
 
-              {editing && (<EditAthleteProfileForm key={profile.id} profile={profile} onUpdated={handleProfileUpdated}
-                                                   onCancel={() => setEditing(false)}/>)}
+              {editing &&
+                  (<EditAthleteProfileForm key={`edit-profile:${profile.id}`} profile={profile}
+                                           onUpdated={handleProfileUpdated} onCancel={() => setEditing(false)}/>)}
 
-              <TrainingPlansPanel key={profile.id} athleteId={profile.id}/>
+              <TrainingPlansPanel key={`training-plans:${profile.id}`} athleteId={profile.id}/>
             </>
         )}
       </section>
