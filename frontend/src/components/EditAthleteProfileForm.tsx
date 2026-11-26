@@ -130,10 +130,7 @@ export default function EditAthleteProfileForm(
             pending.current = false;
         }
 
-        setSubmission({
-            status: 'success',
-            message: `Updated profile for ${profile.displayName}.`,
-        });
+        setSubmission({status: 'success', message: `Updated profile for ${profile.displayName}.`});
 
         props.onUpdated(profile);
     }
