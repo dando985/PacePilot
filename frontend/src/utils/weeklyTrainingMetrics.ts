@@ -1,15 +1,6 @@
-import type {DistanceUnit, PlannedWorkout, TrainingPlan, WorkoutLog, WorkoutType} from '../api/types';
+import type {DistanceUnit, PlannedWorkout, TrainingPlan, WorkoutLog} from '../api/types';
 
 const KILOMETERS_PER_MILE = 1.609344;
-
-const RUNNING_TYPES = new Set<WorkoutType>([
-    'EASY_RUN',
-    'RECOVERY_RUN',
-    'LONG_RUN',
-    'TEMPO_RUN',
-    'INTERVALS',
-    'RACE',
-]);
 
 const weekdayFormatter = new Intl.DateTimeFormat(undefined, {weekday: 'short', timeZone: 'UTC'});
 
@@ -183,11 +174,9 @@ function summarize(entries: LoggedWorkout[], distanceUnit: DistanceUnit): Traini
     for (const entry of entries) {
         const {log, workout} = entry;
 
-        if (workout.type !== 'REST') {
-            metrics.workoutCount++;
-        }
+        metrics.workoutCount++;
 
-        const distance = getRunningDistance(entry, distanceUnit);
+        const distance = getRecordedDistance(log, distanceUnit);
 
         if (distance !== null) {
             metrics.distance = (metrics.distance ?? 0) + distance;
@@ -202,7 +191,7 @@ function summarize(entries: LoggedWorkout[], distanceUnit: DistanceUnit): Traini
                 };
             }
 
-            // Pace uses only runs with both measurements recorded.
+            // Pace uses only logs with both distance and duration recorded.
             if (isPositive(log.actualDurationMinutes)) {
                 paceDistance += distance;
                 paceMinutes += log.actualDurationMinutes;
@@ -244,11 +233,8 @@ function summarize(entries: LoggedWorkout[], distanceUnit: DistanceUnit): Traini
     return metrics;
 }
 
-function getRunningDistance(entry: LoggedWorkout, distanceUnit: DistanceUnit): number | null {
-    const {log, workout} = entry;
-
-    if (!RUNNING_TYPES.has(workout.type) || !isPositive(log.actualDistance)
-        || (log.distanceUnit !== 'MILES' && log.distanceUnit !== 'KILOMETERS')) {
+function getRecordedDistance(log: WorkoutLog, distanceUnit: DistanceUnit): number | null {
+    if (!isPositive(log.actualDistance) || (log.distanceUnit !== 'MILES' && log.distanceUnit !== 'KILOMETERS')) {
         return null;
     }
 
