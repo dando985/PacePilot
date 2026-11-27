@@ -8,14 +8,16 @@ import GenerateTrainingPlanForm from './GenerateTrainingPlanForm';
 import RenameTrainingPlanForm from './RenameTrainingPlanForm';
 import TrainingAssistantPanel from './TrainingAssistantPanel';
 import TrainingPlanProgressSummary from './TrainingPlanProgressSummary';
+import WeeklyTrainingOverview from './WeeklyTrainingOverview';
 import {ApiError} from '../api/client';
 
 import type {DistanceUnit, GoalType, TrainingPlan, WorkoutLog} from '../api/types';
 
 type PlanState =
-    | {status: 'loading'; plans: TrainingPlan[]}
-    | {status: 'success'; plans: TrainingPlan[]; logs: WorkoutLog[]}
-    | {status: 'error'; message: string; plans: TrainingPlan[]};
+    | { status: 'loading'; plans: TrainingPlan[]; logs: WorkoutLog[] | null; }
+    | { status: 'success'; plans: TrainingPlan[]; logs: WorkoutLog[]; }
+    | { status: 'error'; message: string; plans: TrainingPlan[]; logs: WorkoutLog[] | null;
+};
 
 type ArchiveState =
     | {status: 'idle'}
@@ -36,7 +38,7 @@ const distanceLabels: Record<DistanceUnit, string> = {
 };
 
 export default function TrainingPlansPanel(props: {athleteId: string}) {
-    const [planState, setPlanState] = useState<PlanState>({status: 'loading', plans: []});
+    const [planState, setPlanState] = useState<PlanState>({status: 'loading', plans: [], logs: null});
     const [reloadCount, setReloadCount] = useState(0);
     const [renamingPlanId, setRenamingPlanId] = useState<string | null>(null);
     const [editingLogId, setEditingLogId] = useState<string | null>(null);
@@ -80,6 +82,7 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                 setPlanState((current) => ({
                     status: 'error',
                     plans: current.plans,
+                    logs: current.logs,
                     message:
                         error instanceof ApiError
                             ? error.message : 'Unable to load training plans and workout logs. Please try again.',
@@ -96,10 +99,8 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
         setRenamingPlanId(null);
         setEditingLogId(null);
         setPlanMessage(null);
-        setArchiveState((current) =>
-            current.status === 'saving' ? current : {status: 'idle'}
-        );
-        setPlanState((current) => ({status: 'loading', plans: current.plans}));
+        setArchiveState((current) => current.status === 'saving' ? current : {status: 'idle'});
+        setPlanState((current) => ({status: 'loading', plans: current.plans, logs: current.logs,}));
         setReloadCount((count) => count + 1);
     }
 
@@ -125,7 +126,7 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
 
     function handlePlanRenamed(renamedPlan: TrainingPlan) {
         setPlanState((current) => {
-            if (current.status !== 'success') {
+            if (current.logs === null) {
                 return current;
             }
 
@@ -228,6 +229,8 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
     return (
         <div className="training-workspace">
             <section className="training-plans">
+                {planState.logs !== null && (
+                    <WeeklyTrainingOverview athleteId={props.athleteId} plans={planState.plans} logs={planState.logs}/>)}
             <header className="training-plans-header">
                 <h2>Training plans</h2>
 
