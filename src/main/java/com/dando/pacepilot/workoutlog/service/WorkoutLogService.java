@@ -71,6 +71,9 @@ public class WorkoutLogService {
                     request.actualDistance(),
                     request.distanceUnit(),
                     request.actualDurationMinutes(),
+                    request.stepCount(),
+                    request.caloriesBurnedKcal(),
+                    request.averageHeartRateBpm(),
                     request.notes()
             );
         } catch (IllegalArgumentException exception) {
@@ -147,6 +150,9 @@ public class WorkoutLogService {
                     request.actualDistance(),
                     request.distanceUnit(),
                     request.actualDurationMinutes(),
+                    request.stepCount(),
+                    request.caloriesBurnedKcal(),
+                    request.averageHeartRateBpm(),
                     request.notes()
             );
         } catch (IllegalArgumentException exception) {
