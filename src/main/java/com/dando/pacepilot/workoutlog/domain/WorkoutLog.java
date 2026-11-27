@@ -14,6 +14,9 @@ public record WorkoutLog(
         Double actualDistance,
         DistanceUnit distanceUnit,
         Integer actualDurationMinutes,
+        Integer stepCount,
+        Integer caloriesBurnedKcal,
+        Integer averageHeartRateBpm,
         String notes
 ) {
 
@@ -48,6 +51,18 @@ public record WorkoutLog(
 
         if (hasDistance != hasDistanceUnit) {
             throw new IllegalArgumentException("Actual distance and distance unit must be provided together.");
+        }
+
+        if (stepCount != null && stepCount < 0) {
+            throw new IllegalArgumentException("Step count cannot be negative.");
+        }
+
+        if (caloriesBurnedKcal != null && caloriesBurnedKcal < 0) {
+            throw new IllegalArgumentException("Calories burned cannot be negative.");
+        }
+
+        if (averageHeartRateBpm != null && averageHeartRateBpm <= 0) {
+            throw new IllegalArgumentException("Average heart rate must be greater than zero.");
         }
 
         notes = notes == null || notes.isBlank() ? null : notes.strip();

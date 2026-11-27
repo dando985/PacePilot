@@ -44,6 +44,15 @@ public class WorkoutLogEntity {
     @Column(name = "actual_duration_minutes")
     private Integer actualDurationMinutes;
 
+    @Column(name = "step_count")
+    private Integer stepCount;
+
+    @Column(name = "calories_burned_kcal")
+    private Integer caloriesBurnedKcal;
+
+    @Column(name = "average_heart_rate_bpm")
+    private Integer averageHeartRateBpm;
+
     @Column(name = "notes", columnDefinition = "text")
     private String notes;
 
@@ -58,6 +67,9 @@ public class WorkoutLogEntity {
             Double actualDistance,
             DistanceUnit distanceUnit,
             Integer actualDurationMinutes,
+            Integer stepCount,
+            Integer caloriesBurnedKcal,
+            Integer averageHeartRateBpm,
             String notes
     ) {
         this.id = id;
@@ -67,6 +79,9 @@ public class WorkoutLogEntity {
         this.actualDistance = actualDistance;
         this.distanceUnit = distanceUnit;
         this.actualDurationMinutes = actualDurationMinutes;
+        this.stepCount = stepCount;
+        this.caloriesBurnedKcal = caloriesBurnedKcal;
+        this.averageHeartRateBpm = averageHeartRateBpm;
         this.notes = notes;
     }
 
@@ -96,6 +111,18 @@ public class WorkoutLogEntity {
 
     public Integer getActualDurationMinutes() {
         return actualDurationMinutes;
+    }
+
+    public Integer getStepCount() {
+        return stepCount;
+    }
+
+    public Integer getCaloriesBurnedKcal() {
+        return caloriesBurnedKcal;
+    }
+
+    public Integer getAverageHeartRateBpm() {
+        return averageHeartRateBpm;
     }
 
     public String getNotes() {
