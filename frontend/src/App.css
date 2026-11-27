@@ -80,6 +80,70 @@ html body {
   letter-spacing: -0.055em;
 }
 
+/* Dashboard background */
+body:has(.athlete-dashboard) {
+  isolation: isolate;
+  background: #0b1515;
+}
+
+body:has(.athlete-dashboard)::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+          radial-gradient(
+                  ellipse 75rem 58rem at 110% 10%,
+                  transparent 40%,
+                  rgb(201 242 122 / 8%) calc(40% + 1px),
+                  transparent calc(40% + 2px),
+                  transparent 46%,
+                  rgb(201 242 122 / 7%) calc(46% + 1px),
+                  transparent calc(46% + 2px),
+                  transparent 52%,
+                  rgb(201 242 122 / 6%) calc(52% + 1px),
+                  transparent calc(52% + 2px),
+                  transparent 58%,
+                  rgb(201 242 122 / 5%) calc(58% + 1px),
+                  transparent calc(58% + 2px),
+                  transparent 64%,
+                  rgb(201 242 122 / 4%) calc(64% + 1px),
+                  transparent calc(64% + 2px)
+          ),
+          radial-gradient(
+                  ellipse 65rem 42rem at 0% -10%,
+                  rgb(201 242 122 / 12%),
+                  transparent 70%
+          ),
+          radial-gradient(
+                  ellipse 55rem 45rem at 105% 25%,
+                  rgb(35 129 123 / 18%),
+                  transparent 70%
+          ),
+          radial-gradient(
+                  ellipse 50rem 35rem at 25% 110%,
+                  rgb(122 165 74 / 7%),
+                  transparent 75%
+          ),
+          linear-gradient(
+                  135deg,
+                  #111e1b 0%,
+                  #0b1217 50%,
+                  #101c1a 100%
+          );
+}
+
+/* Blend the dashboard header into the page background */
+body:has(.athlete-dashboard) .app-header {
+  position: relative;
+  top: auto;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
 /* Brand and account header */
 .app-header {
   position: sticky;
@@ -673,7 +737,7 @@ html body {
 }
 
 .assistant-sidebar {
-  --sidebar-top: 9rem;
+  --sidebar-top: 1.5rem;
 
   position: sticky;
   top: var(--sidebar-top);
