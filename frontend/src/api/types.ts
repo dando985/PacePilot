@@ -146,6 +146,9 @@ export interface WorkoutLog {
     actualDistance: number | null;
     distanceUnit: DistanceUnit | null;
     actualDurationMinutes: number | null;
+    stepCount: number | null;
+    caloriesBurnedKcal: number | null;
+    averageHeartRateBpm: number | null;
     notes: string | null;
 }
 
@@ -154,6 +157,9 @@ export interface CreateWorkoutLogRequest {
     actualDistance?: number | null;
     distanceUnit?: DistanceUnit | null;
     actualDurationMinutes?: number | null;
+    stepCount?: number | null;
+    caloriesBurnedKcal?: number | null;
+    averageHeartRateBpm?: number | null;
     notes?: string | null;
 }
 
@@ -162,6 +168,9 @@ export interface UpdateWorkoutLogRequest {
     actualDistance: number | null;
     distanceUnit: DistanceUnit | null;
     actualDurationMinutes: number | null;
+    stepCount: number | null;
+    caloriesBurnedKcal: number | null;
+    averageHeartRateBpm: number | null;
     notes: string | null;
 }
 
