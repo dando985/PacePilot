@@ -21,6 +21,19 @@ type SubmissionState =
     | {status: 'error'; message: string}
     | {status: 'success'; message: string};
 
+const MAX_INTEGER = 2_147_483_647;
+
+function isValidOptionalInteger(
+    value: number | null,
+    minimum: number
+): boolean {
+    return value === null || (
+        Number.isInteger(value)
+        && value >= minimum
+        && value <= MAX_INTEGER
+    );
+}
+
 function localToday(): string {
     const now = new Date();
 
@@ -52,16 +65,23 @@ export default function EditWorkoutLogForm(
         }
 
         const data = new FormData(form);
+
         const read = (name: string) => String(data.get(name) ?? '').trim();
 
+        const readOptionalNumber = (name: string): number | null => {
+            const value = read(name);
+            return value === '' ? null : Number(value);
+        };
+
         const completedDate = read('completedDate');
-        const distanceText = read('actualDistance');
         const unitText = read('distanceUnit');
-        const durationText = read('actualDurationMinutes');
         const notes = read('notes');
 
-        const actualDistance = distanceText === '' ? null : Number(distanceText);
-        const actualDurationMinutes = durationText === '' ? null : Number(durationText);
+        const actualDistance = readOptionalNumber('actualDistance');
+        const actualDurationMinutes = readOptionalNumber('actualDurationMinutes');
+        const stepCount = readOptionalNumber('stepCount');
+        const caloriesBurnedKcal = readOptionalNumber('caloriesBurnedKcal');
+        const averageHeartRateBpm = readOptionalNumber('averageHeartRateBpm');
 
         const distanceUnit = distanceOptions.find((option) => option.value === unitText)?.value ?? null;
 
@@ -75,7 +95,8 @@ export default function EditWorkoutLogForm(
             return;
         }
 
-        if (actualDistance !== null && (!Number.isFinite(actualDistance) || actualDistance <= 0)) {
+        if (actualDistance !== null && (
+            !Number.isFinite(actualDistance) || actualDistance <= 0)) {
             showError('Actual distance must be a finite number greater than zero.');
             return;
         }
@@ -90,9 +111,23 @@ export default function EditWorkoutLogForm(
             return;
         }
 
-        if (actualDurationMinutes !== null && (
-            !Number.isInteger(actualDurationMinutes) || actualDurationMinutes < 1 || actualDurationMinutes > 2147483_647)) {
+        if (!isValidOptionalInteger(actualDurationMinutes, 1)) {
             showError('Actual duration must be a positive whole number within the supported range.');
+            return;
+        }
+
+        if (!isValidOptionalInteger(stepCount, 0)) {
+            showError('Steps must be a non-negative whole number within the supported range.');
+            return;
+        }
+
+        if (!isValidOptionalInteger(caloriesBurnedKcal, 0)) {
+            showError('Calories burned must be a non-negative whole number within the supported range.');
+            return;
+        }
+
+        if (!isValidOptionalInteger(averageHeartRateBpm, 1)) {
+            showError('Average heart rate must be a positive whole number within the supported range.');
             return;
         }
 
@@ -101,6 +136,9 @@ export default function EditWorkoutLogForm(
             actualDistance,
             distanceUnit,
             actualDurationMinutes,
+            stepCount,
+            caloriesBurnedKcal,
+            averageHeartRateBpm,
             notes: notes === '' ? null : notes,
         };
 
@@ -131,11 +169,9 @@ export default function EditWorkoutLogForm(
     }
 
     return (
-        <form className="workout-log-form" aria-label="Edit workout log" aria-busy={saving}
-              onSubmit={(event) => {
-                event.preventDefault();
-                void handleSubmit(event.currentTarget);
-              }}
+        <form className="workout-log-form" aria-label="Edit workout log" aria-busy={saving} onSubmit={(event) => {
+                event.preventDefault();void handleSubmit(event.currentTarget);
+        }}
         >
             <h6>Edit workout log</h6>
 
@@ -145,8 +181,8 @@ export default function EditWorkoutLogForm(
                 <p>
                     <label>
                         Completion date
-                        <input name="completedDate" type="date" defaultValue={props.log.completedDate}
-                            max={localToday()} required
+                        <input name="completedDate" type="date" defaultValue={props.log.completedDate} max={localToday()}
+                               required
                         />
                     </label>
                 </p>
@@ -154,8 +190,8 @@ export default function EditWorkoutLogForm(
                 <p>
                     <label>
                         Actual duration in minutes (optional)
-                        <input name="actualDurationMinutes" type="number"
-                            defaultValue={props.log.actualDurationMinutes ?? ''} min={1} max={2147483647} step={1}
+                        <input name="actualDurationMinutes" type="number" defaultValue={props.log.actualDurationMinutes ?? ''}
+                               min={1} max={MAX_INTEGER} step={1}
                         />
                     </label>
                 </p>
@@ -167,8 +203,8 @@ export default function EditWorkoutLogForm(
                 <p>
                     <label>
                         Actual distance (optional)
-                        <input name="actualDistance" type="number" defaultValue={props.log.actualDistance ?? ''}
-                            min={0} step="any"
+                        <input name="actualDistance" type="number" defaultValue={props.log.actualDistance ?? ''} min={0}
+                               step="any"
                         />
                     </label>
                 </p>
@@ -178,6 +214,7 @@ export default function EditWorkoutLogForm(
                         Distance unit
                         <select name="distanceUnit" defaultValue={props.log.distanceUnit ?? ''}>
                             <option value="">Not provided</option>
+
                             {distanceOptions.map((option) => (
                                 <option key={option.value} value={option.value}>
                                     {option.label}
@@ -192,12 +229,47 @@ export default function EditWorkoutLogForm(
                 </p>
             </fieldset>
 
-            <p>
-                <label>
-                    Notes (optional)
-                    <textarea name="notes" rows={3} defaultValue={props.log.notes ?? ''} disabled={saving}/>
-                </label>
-            </p>
+            <fieldset disabled={saving}>
+                <legend>Additional metrics (optional)</legend>
+
+                <p>
+                    <label>
+                        Steps
+                        <input name="stepCount" type="number" defaultValue={props.log.stepCount ?? ''} min={0}
+                               max={MAX_INTEGER} step={1}
+                        />
+                    </label>
+                </p>
+
+                <p>
+                    <label>
+                        Calories burned (kcal)
+                        <input name="caloriesBurnedKcal" type="number" defaultValue={props.log.caloriesBurnedKcal ?? ''}
+                               min={0} max={MAX_INTEGER} step={1}
+                        />
+                    </label>
+                </p>
+
+                <p>
+                    <label>
+                        Average heart rate (bpm)
+                        <input name="averageHeartRateBpm" type="number" defaultValue={props.log.averageHeartRateBpm ?? ''}
+                               min={1} max={MAX_INTEGER} step={1}
+                        />
+                    </label>
+                </p>
+            </fieldset>
+
+            <fieldset disabled={saving}>
+                <legend>Notes (optional)</legend>
+
+                <p>
+                    <label>
+                        Workout notes
+                        <textarea name="notes" rows={3} defaultValue={props.log.notes ?? ''}/>
+                    </label>
+                </p>
+            </fieldset>
 
             <div className="workout-log-form-actions">
                 <button type="submit" disabled={saving}>
