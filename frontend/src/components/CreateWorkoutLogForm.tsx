@@ -23,15 +23,8 @@ type SubmissionState =
 
 const MAX_INTEGER = 2_147_483_647;
 
-function isValidOptionalInteger(
-    value: number | null,
-    minimum: number
-): boolean {
-    return value === null || (
-        Number.isInteger(value)
-        && value >= minimum
-        && value <= MAX_INTEGER
-    );
+function isValidOptionalInteger(value: number | null, minimum: number): boolean {
+    return value === null || (Number.isInteger(value) && value >= minimum && value <= MAX_INTEGER);
 }
 
 function localToday(): string {
