@@ -17,3 +17,7 @@ export function createWorkoutLog(planId: string, workoutId: string, request: Cre
 export function updateWorkoutLog(logId: string, request: UpdateWorkoutLogRequest): Promise<WorkoutLog> {
     return apiRequest<WorkoutLog>(`/workout-logs/${encodeURIComponent(logId)}`, {method: 'PUT', body: request});
 }
+
+export function deleteWorkoutLog(logId: string): Promise<void> {
+    return apiRequest<void>(`/workout-logs/${encodeURIComponent(logId)}`, {method: 'DELETE'});
+}
