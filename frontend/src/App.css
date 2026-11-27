@@ -126,15 +126,9 @@ body:has(.athlete-dashboard)::before {
                   rgb(122 165 74 / 7%),
                   transparent 75%
           ),
-          linear-gradient(
-                  135deg,
-                  #111e1b 0%,
-                  #0b1217 50%,
-                  #101c1a 100%
-          );
+          linear-gradient(135deg, #111e1b 0%, #0b1217 50%, #101c1a 100%);
 }
 
-/* Blend the dashboard header into the page background */
 body:has(.athlete-dashboard) .app-header {
   position: relative;
   top: auto;
@@ -267,6 +261,7 @@ body:has(.athlete-dashboard) .app-header {
 .plan-card-header > button:not(:disabled),
 .plan-archive-actions > button:not(:disabled),
 .workout-log-header > button:not(:disabled),
+.weekly-week-navigation > button:not(.weekly-current-week):not(:disabled),
 :is(
   .profile-form-actions,
   .plan-form-actions,
@@ -286,6 +281,7 @@ body:has(.athlete-dashboard) .app-header {
 .plan-card-header > button:hover:not(:disabled),
 .plan-archive-actions > button:hover:not(:disabled),
 .workout-log-header > button:hover:not(:disabled),
+.weekly-week-navigation > button:not(.weekly-current-week):hover:not(:disabled),
 :is(
   .profile-form-actions,
   .plan-form-actions,
@@ -368,7 +364,9 @@ body:has(.athlete-dashboard) .app-header {
 }
 
 :where(.app) :is(form, .auth-form) label,
-.assistant-plan-picker label {
+.assistant-plan-picker label,
+.weekly-overview-unit,
+.weekly-chart-selector {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -379,7 +377,9 @@ body:has(.athlete-dashboard) .app-header {
 }
 
 :where(.app) :is(form, .auth-form) :is(input, select, textarea),
-.assistant-plan-picker select {
+.assistant-plan-picker select,
+.weekly-overview-unit select,
+.weekly-chart-selector select {
   width: 100%;
   min-width: 0;
   min-height: 3rem;
@@ -391,9 +391,7 @@ body:has(.athlete-dashboard) .app-header {
   font: inherit;
   font-size: 1rem;
   font-weight: 400;
-  transition:
-          border-color 160ms ease,
-          box-shadow 160ms ease;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .app input:-webkit-autofill {
@@ -411,23 +409,19 @@ body:has(.athlete-dashboard) .app-header {
   resize: vertical;
 }
 
-:where(.app) :is(form, .auth-form) :is(
-  input,
-  select,
-  textarea
-):focus-visible,
-.assistant-plan-picker select:focus-visible {
+:where(.app) :is(form, .auth-form) :is(input, select, textarea):focus-visible,
+.assistant-plan-picker select:focus-visible,
+.weekly-overview-unit select:focus-visible,
+.weekly-chart-selector select:focus-visible {
   border-color: var(--color-primary);
   outline: 2px solid rgb(201 242 122 / 22%);
   outline-offset: 2px;
 }
 
-:where(.app) :is(form, .auth-form) :is(
-  input,
-  select,
-  textarea
-):disabled,
-.assistant-plan-picker select:disabled {
+:where(.app) :is(form, .auth-form) :is(input, select, textarea):disabled,
+.assistant-plan-picker select:disabled,
+.weekly-overview-unit select:disabled,
+.weekly-chart-selector select:disabled {
   background: #172229;
   color: #8a9ba6;
   cursor: not-allowed;
@@ -659,14 +653,17 @@ body:has(.athlete-dashboard) .app-header {
   text-align: center;
 }
 
-/* Profile overview */
+/* Shared dashboard cards */
 .athlete-dashboard {
   min-width: 0;
 }
 
 .profile-card,
 .plan-card,
-.training-assistant {
+.training-assistant,
+.weekly-stat-card,
+.weekly-detail-card,
+.weekly-metric-chart {
   min-width: 0;
   border: 1px solid var(--color-border);
   border-radius: 1rem;
@@ -675,6 +672,7 @@ body:has(.athlete-dashboard) .app-header {
   overflow-wrap: anywhere;
 }
 
+/* Profile overview */
 .profile-card {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -761,6 +759,345 @@ body:has(.athlete-dashboard) .app-header {
   border: 0;
   border-radius: inherit;
   box-shadow: none;
+}
+
+/* Weekly overview and controls */
+.weekly-overview {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  margin-bottom: 2.5rem;
+}
+
+.weekly-overview-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem;
+  min-width: 0;
+  margin-bottom: 0.25rem;
+}
+
+.weekly-overview-header > div:first-child {
+  min-width: 0;
+}
+
+.weekly-overview-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: -0.035em;
+}
+
+.weekly-overview-range {
+  margin: 0.4rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.weekly-overview-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.weekly-week-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.weekly-week-navigation > button {
+  min-height: 2.75rem;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.weekly-week-navigation > button:hover:not(:disabled) {
+  transform: none;
+}
+
+.weekly-overview-unit {
+  width: 9rem;
+  max-width: 100%;
+}
+
+.weekly-overview-unit select,
+.weekly-chart-selector select {
+  min-height: 2.75rem;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+/* Weekly summary cards */
+.weekly-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  min-width: 0;
+}
+
+.weekly-stat-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.2rem;
+}
+
+.weekly-stat-card:first-child {
+  border-color: #49623b;
+  background:
+          linear-gradient(145deg, rgb(201 242 122 / 8%), transparent 70%),
+          var(--color-surface);
+}
+
+.weekly-stat-card > h3,
+.weekly-detail-card > h3 {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  line-height: 1.5;
+}
+
+.weekly-stat-value {
+  margin: 0.8rem 0 0.5rem;
+  color: var(--color-text);
+  font-size: clamp(1.65rem, 2.5vw, 2.15rem);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.05em;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.weekly-stat-unit {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.weekly-stat-note {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  line-height: 1.65;
+}
+
+.weekly-stat-card > .weekly-stat-note {
+  margin-top: auto;
+  padding-top: 0.35rem;
+}
+
+/* Daily metric chart */
+.weekly-metric-chart {
+  padding: 1.5rem;
+}
+
+.weekly-chart-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 0;
+  margin-bottom: 0.75rem;
+}
+
+.weekly-chart-header > h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  letter-spacing: -0.025em;
+}
+
+.weekly-chart-selector {
+  width: min(100%, 18rem);
+}
+
+.weekly-chart-description {
+  margin: 0 0 1rem;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+
+.weekly-chart-empty {
+  margin: 0 0 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px dashed var(--color-border);
+  border-radius: 0.7rem;
+  background: var(--color-input);
+  color: var(--color-muted);
+  font-size: 0.8rem;
+}
+
+.weekly-metric-chart :is(.recharts-wrapper, .recharts-surface):focus-visible {
+  border-radius: 0.5rem;
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+}
+
+.weekly-chart-tooltip {
+  min-width: 9rem;
+  max-width: min(18rem, 70vw);
+  padding: 0.8rem 1rem;
+  border: 1px solid #4a5b65;
+  border-radius: 0.75rem;
+  background: var(--color-input);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 35%);
+  overflow-wrap: anywhere;
+}
+
+.weekly-chart-tooltip > p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.72rem;
+}
+
+.weekly-chart-tooltip > .weekly-chart-tooltip-value {
+  margin: 0.25rem 0;
+  color: var(--color-primary);
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Exact daily values below the chart */
+.weekly-chart-data {
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.weekly-chart-table {
+  width: 100%;
+  margin-top: 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.weekly-chart-table table {
+  width: 100%;
+  min-width: 23rem;
+  border-collapse: collapse;
+  background: var(--color-input);
+  font-size: 0.8rem;
+  text-align: left;
+}
+
+.weekly-chart-table caption {
+  padding: 0.75rem 0.85rem;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  text-align: left;
+}
+
+.weekly-chart-table :is(th, td) {
+  padding: 0.7rem 0.85rem;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.weekly-chart-table thead th {
+  background: var(--color-raised);
+  color: var(--color-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.weekly-chart-table tbody th {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.weekly-chart-table td {
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.weekly-chart-table :is(th, td):not(:first-child) {
+  text-align: right;
+}
+
+.weekly-chart-table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+/* Longest run and training consistency */
+.weekly-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  min-width: 0;
+}
+
+.weekly-detail-card {
+  padding: 1.25rem;
+}
+
+.weekly-detail-title {
+  margin: 0.7rem 0 0.25rem;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.weekly-consistency-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin: 1rem 0 0.65rem;
+  padding: 0;
+  list-style: none;
+}
+
+.weekly-consistency-days > li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+  padding: 0.55rem 0.15rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.55rem;
+  background: var(--color-input);
+}
+
+.weekly-consistency-days time {
+  max-width: 100%;
+  color: var(--color-muted);
+  font-size: 0.67rem;
+  white-space: nowrap;
+}
+
+.weekly-consistency-days span {
+  color: var(--color-text);
+  font-size: 0.875rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.weekly-consistency-days > li[data-active="true"] {
+  border-color: #4a6538;
+  background: #223224;
+}
+
+.weekly-consistency-days > li[data-active="true"] :is(time, span) {
+  color: var(--color-primary);
 }
 
 /* Training plans and plan generation */
@@ -857,7 +1194,8 @@ body:has(.athlete-dashboard) .app-header {
 }
 
 .plan-card summary,
-.assistant-source > summary {
+.assistant-source > summary,
+.weekly-chart-data > summary {
   min-height: 2.75rem;
   padding: 0.65rem 0;
   border-radius: 0.25rem;
@@ -868,7 +1206,8 @@ body:has(.athlete-dashboard) .app-header {
 }
 
 .plan-card summary:hover,
-.assistant-source > summary:hover {
+.assistant-source > summary:hover,
+.weekly-chart-data > summary:hover {
   color: var(--color-primary-hover);
 }
 
@@ -1253,6 +1592,13 @@ body:has(.athlete-dashboard) .app-header {
   white-space: pre-wrap;
 }
 
+/* Summary cards on narrower desktops */
+@media (max-width: 1350px) {
+  .weekly-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* Narrow dashboard layout */
 @media (max-width: 1100px) {
   .training-workspace {
@@ -1334,6 +1680,24 @@ body:has(.athlete-dashboard) .app-header {
     gap: 1rem;
   }
 
+  .weekly-overview-header,
+  .weekly-chart-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .weekly-overview-controls {
+    justify-content: space-between;
+  }
+
+  .weekly-chart-selector {
+    width: 100%;
+  }
+
+  .weekly-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   :is(
     .profile-form,
     .plan-generation-form,
@@ -1377,6 +1741,7 @@ body:has(.athlete-dashboard) .app-header {
   }
 }
 
+/* Small phones */
 @media (max-width: 480px) {
   .app:has(> .auth-form) {
     padding: 1rem;
@@ -1406,7 +1771,10 @@ body:has(.athlete-dashboard) .app-header {
   .plan-progress,
   .assistant-answer,
   .profile-form,
-  .plan-generation-form {
+  .plan-generation-form,
+  .weekly-stat-card,
+  .weekly-detail-card,
+  .weekly-metric-chart {
     padding: 1.1rem;
   }
 
@@ -1416,6 +1784,29 @@ body:has(.athlete-dashboard) .app-header {
 
   .plan-progress-totals {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .weekly-stat-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .weekly-overview-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .weekly-week-navigation {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .weekly-week-navigation > button {
+    padding-inline: 0.4rem;
+  }
+
+  .weekly-overview-unit {
+    width: 100%;
   }
 
   .plan-generation-form fieldset {
