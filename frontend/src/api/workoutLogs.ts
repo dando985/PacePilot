@@ -11,8 +11,7 @@ export function getWorkoutLogs(athleteId: string, signal: AbortSignal | null = n
 }
 
 export function createWorkoutLog(planId: string, workoutId: string, request: CreateWorkoutLogRequest): Promise<WorkoutLog> {
-    return apiRequest<WorkoutLog>(`/training-plans/${encodeURIComponent(planId)}/workouts/
-    ${encodeURIComponent(workoutId)}/logs`, {method: 'POST', body: request});
+    return apiRequest<WorkoutLog>(`/training-plans/${encodeURIComponent(planId)}/workouts/${encodeURIComponent(workoutId)}/logs`, {method: 'POST', body: request});
 }
 
 export function updateWorkoutLog(logId: string, request: UpdateWorkoutLogRequest): Promise<WorkoutLog> {
