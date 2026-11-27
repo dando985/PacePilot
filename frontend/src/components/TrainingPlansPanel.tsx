@@ -2,7 +2,6 @@ import {useEffect, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 
 import {getTrainingPlans, setTrainingPlanArchived} from '../api/trainingPlans';
-import {getWorkoutLogs} from '../api/workoutLogs';
 import CreateWorkoutLogForm from './CreateWorkoutLogForm';
 import EditWorkoutLogForm from './EditWorkoutLogForm';
 import GenerateTrainingPlanForm from './GenerateTrainingPlanForm';
@@ -10,6 +9,7 @@ import RenameTrainingPlanForm from './RenameTrainingPlanForm';
 import TrainingAssistantPanel from './TrainingAssistantPanel';
 import TrainingPlanProgressSummary from './TrainingPlanProgressSummary';
 import WeeklyTrainingOverview from './WeeklyTrainingOverview';
+import {deleteWorkoutLog, getWorkoutLogs} from '../api/workoutLogs';
 import {ApiError} from '../api/client';
 
 import type {DistanceUnit, GoalType, TrainingPlan, WorkoutLog} from '../api/types';
@@ -24,6 +24,11 @@ type PlanState =
 type ArchiveState =
     | {status: 'idle'}
     | {status: 'saving'; planId: string}
+    | {status: 'error'; message: string};
+
+type LogDeleteState =
+    | {status: 'idle'}
+    | {status: 'deleting'; logId: string}
     | {status: 'error'; message: string};
 
 const goalLabels: Record<GoalType, string> = {
@@ -49,6 +54,11 @@ export default function TrainingPlansPanel(props: {athleteId: string; activeView
     const [archiveState, setArchiveState] = useState<ArchiveState>({status: 'idle'});
     const [showGenerationForm, setShowGenerationForm] = useState(false);
     const [generationFormVersion, setGenerationFormVersion] = useState(0);
+    const [logDeleteState, setLogDeleteState] = useState<LogDeleteState>({status: 'idle'});
+    const deletePending = useRef(false);
+    const loadController = useRef<AbortController | null>(null);
+
+    const deleting = logDeleteState.status === 'deleting';
 
     const generationFormId = `plan-generation-${props.athleteId}`;
 
@@ -60,6 +70,7 @@ export default function TrainingPlansPanel(props: {athleteId: string; activeView
 
     useEffect(() => {
         const controller = new AbortController();
+        loadController.current = controller;
 
         async function loadPlansAndLogs() {
             try {
@@ -97,15 +108,28 @@ export default function TrainingPlansPanel(props: {athleteId: string; activeView
 
         void loadPlansAndLogs();
 
-        return () => {controller.abort();};
+        return () => {
+            controller.abort();
+
+            if (loadController.current === controller) {
+                loadController.current = null;
+            }
+        };
     }, [props.athleteId, reloadCount]);
 
     function reloadPlans() {
+        if (deletePending.current) {
+            return;
+        }
+
+        setLogDeleteState({status: 'idle'});
         setRenamingPlanId(null);
         setEditingLogId(null);
         setPlanMessage(null);
+
         setArchiveState((current) => current.status === 'saving' ? current : {status: 'idle'});
-        setPlanState((current) => ({status: 'loading', plans: current.plans, logs: current.logs,}));
+        setPlanState((current) => ({status: 'loading', plans: current.plans, logs: current.logs}));
+
         setReloadCount((count) => count + 1);
     }
 
@@ -125,6 +149,11 @@ export default function TrainingPlansPanel(props: {athleteId: string; activeView
     }
 
     function startEditingLog(logId: string) {
+        if (deletePending.current) {
+            return;
+        }
+
+        setLogDeleteState({status: 'idle'});
         setPlanMessage(null);
         setEditingLogId(logId);
     }
@@ -220,6 +249,57 @@ export default function TrainingPlansPanel(props: {athleteId: string; activeView
         setReloadCount((count) => count + 1);
     }
 
+    async function handleDeleteLog(log: WorkoutLog, workoutTitle: string) {
+        if (deletePending.current || archivePending.current) {
+            return;
+        }
+
+        const confirmed = window.confirm(
+            `Delete the workout log for "${workoutTitle}" (${log.completedDate})?\n\n`
+            + 'This permanently removes its recorded measurements and notes.'
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        deletePending.current = true;
+        setLogDeleteState({status: 'deleting', logId: log.id});
+        setPlanMessage(null);
+
+        try {
+            await deleteWorkoutLog(log.id);
+        } catch (error: unknown) {
+            setLogDeleteState({
+                status: 'error',
+                message: error instanceof ApiError
+                    ? error.message
+                    : 'Unable to confirm deletion. Refresh training plans to check whether the log was deleted.',
+            });
+            return;
+        } finally {
+            deletePending.current = false;
+        }
+
+        loadController.current?.abort();
+
+        setPlanState((current) => {
+            if (current.logs === null) {
+                return current;
+            }
+
+            return {
+                ...current,
+                logs: current.logs.filter((existing) => existing.id !== log.id),
+            };
+        });
+
+        setEditingLogId((currentId) => currentId === log.id ? null : currentId);
+        setLogDeleteState({status: 'idle'});
+        setPlanMessage('Workout log deleted.');
+        setReloadCount((count) => count + 1);
+    }
+
     const visiblePlans = planState.status === 'success'
         ? planState.plans.filter((plan) => showArchived || !plan.archived) : [];
 
@@ -234,6 +314,7 @@ export default function TrainingPlansPanel(props: {athleteId: string; activeView
     return (
         <div className="training-workspace">
             <div className="training-workspace-main">
+                {logDeleteState.status === 'error' && (<p role="alert">{logDeleteState.message}</p>)}
                 <section className="dashboard-view" aria-label="Weekly training overview" hidden={!showDashboard}>
                     {planState.status === 'loading' && (
                         <p role="status">
@@ -249,7 +330,7 @@ export default function TrainingPlansPanel(props: {athleteId: string; activeView
                                 <p>Showing previously loaded training data.</p>
                             )}
 
-                            <button type="button" onClick={reloadPlans} disabled={archiving}>
+                            <button type="button" onClick={reloadPlans} disabled={archiving || deleting}>
                                 Retry
                             </button>
                         </div>
@@ -265,7 +346,7 @@ export default function TrainingPlansPanel(props: {athleteId: string; activeView
                 <h2>Training plans</h2>
 
                 <div className="plan-form-actions">
-                    <button type="button" onClick={reloadPlans} disabled={planState.status === 'loading' || archiving}>
+                    <button type="button" onClick={reloadPlans} disabled={planState.status === 'loading' || archiving || deleting}>
                         {planState.status === 'error' ? 'Retry' : 'Refresh'}
                     </button>
 
@@ -423,13 +504,28 @@ export default function TrainingPlansPanel(props: {athleteId: string; activeView
                                                                         />
                                                                     ) : (
                                                                         <>
-                                                                            <header className="workout-log-header">
+                                                                            <header
+                                                                                className="workout-log-header"
+                                                                                style={{flexWrap: 'wrap'}}
+                                                                            >
                                                                                 <h6>Completion details</h6>
 
-                                                                                <button type="button"
+                                                                                <button
+                                                                                    type="button"
                                                                                     onClick={() => startEditingLog(log.id)}
+                                                                                    disabled={deleting}
                                                                                 >
                                                                                     Edit log
+                                                                                </button>
+
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => void handleDeleteLog(log, workout.title)}
+                                                                                    disabled={deleting || archiving}
+                                                                                >
+                                                                                    {logDeleteState.status === 'deleting'
+                                                                                    && logDeleteState.logId === log.id
+                                                                                        ? 'Deleting...' : 'Delete log'}
                                                                                 </button>
                                                                             </header>
 
