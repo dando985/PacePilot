@@ -15,4 +15,6 @@ public interface WorkoutLogRepository {
     Optional<WorkoutLog> findByPlannedWorkoutId(UUID plannedWorkoutId);
 
     List<WorkoutLog> findByAthleteProfileId(UUID athleteProfileId);
+
+    void deleteById(UUID id);
 }

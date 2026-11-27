@@ -47,6 +47,12 @@ public class PostgresWorkoutLogRepository implements WorkoutLogRepository {
                 .toList();
     }
 
+    @Override
+    @Transactional
+    public void deleteById(UUID id) {
+        jpaRepository.deleteById(id);
+    }
+
     private WorkoutLogEntity toEntity(WorkoutLog log) {
         return new WorkoutLogEntity(
                 log.id(),

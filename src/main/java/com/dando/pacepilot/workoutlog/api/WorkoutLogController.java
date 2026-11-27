@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 import java.net.URI;
 import java.util.List;
@@ -57,6 +58,12 @@ public class WorkoutLogController {
     @GetMapping("/api/athletes/{athleteId}/workout-logs")
     public List<WorkoutLog> findLogsByAthleteId(@PathVariable UUID athleteId) {
         return logService.findLogsByAthleteId(athleteId);
+    }
+
+    @DeleteMapping("/api/workout-logs/{logId}")
+    public ResponseEntity<Void> deleteLog(@PathVariable UUID logId) {
+        logService.deleteLog(logId);
+        return ResponseEntity.noContent().build();
     }
 
     @ExceptionHandler(InvalidWorkoutLogException.class)

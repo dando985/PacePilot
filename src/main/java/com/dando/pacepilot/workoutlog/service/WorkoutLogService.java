@@ -83,6 +83,16 @@ public class WorkoutLogService {
         return logRepository.save(updatedLog);
     }
 
+    @Transactional
+    public void deleteLog(UUID logId) {
+        if (logId == null) {
+            throw new IllegalArgumentException("Workout log ID is required.");
+        }
+
+        WorkoutLog log = getLogById(logId);
+        logRepository.deleteById(log.id());
+    }
+
     public WorkoutLog getLogById(UUID logId) {
         UUID athleteId = profileService.getCurrentProfile().id();
 
