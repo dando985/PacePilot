@@ -21,6 +21,19 @@ type SubmissionState =
     | {status: 'error'; message: string}
     | {status: 'success'; message: string};
 
+const MAX_INTEGER = 2_147_483_647;
+
+function isValidOptionalInteger(
+    value: number | null,
+    minimum: number
+): boolean {
+    return value === null || (
+        Number.isInteger(value)
+        && value >= minimum
+        && value <= MAX_INTEGER
+    );
+}
+
 function localToday(): string {
     const now = new Date();
 
@@ -48,17 +61,23 @@ export default function CreateWorkoutLogForm(props: {planId: string; workoutId: 
 
         const data = new FormData(form);
         const read = (name: string) => String(data.get(name) ?? '').trim();
+        const readOptionalNumber = (name: string): number | null => {
+            const value = read(name);
+            return value === '' ? null : Number(value);
+        };
 
         const completedDate = read('completedDate');
-        const distanceText = read('actualDistance');
         const unitText = read('distanceUnit');
-        const durationText = read('actualDurationMinutes');
         const notes = read('notes');
 
-        const actualDistance = distanceText === '' ? null : Number(distanceText);
-        const actualDurationMinutes = durationText === '' ? null : Number(durationText);
+        const actualDistance = readOptionalNumber('actualDistance');
+        const actualDurationMinutes = readOptionalNumber('actualDurationMinutes');
+        const stepCount = readOptionalNumber('stepCount');
+        const caloriesBurnedKcal = readOptionalNumber('caloriesBurnedKcal');
+        const averageHeartRateBpm = readOptionalNumber('averageHeartRateBpm');
 
-        const distanceUnit = distanceOptions.find((option) => option.value === unitText)?.value ?? null;
+        const distanceUnit = distanceOptions.find(
+            (option) => option.value === unitText)?.value ?? null;
 
         if (!completedDate) {
             showError('Enter a completion date.');
@@ -70,8 +89,12 @@ export default function CreateWorkoutLogForm(props: {planId: string; workoutId: 
             return;
         }
 
-        if (actualDistance !== null && (!Number.isFinite(actualDistance) || actualDistance <= 0)) {
-            showError('Actual distance must be a finite number greater than zero.');
+        if (actualDistance !== null && (
+            !Number.isFinite(actualDistance) || actualDistance <= 0
+        )) {
+            showError(
+                'Actual distance must be a finite number greater than zero.'
+            );
             return;
         }
 
@@ -81,13 +104,37 @@ export default function CreateWorkoutLogForm(props: {planId: string; workoutId: 
         }
 
         if ((actualDistance !== null) !== (distanceUnit !== null)) {
-            showError('Provide both actual distance and its unit, or leave both blank.');
+            showError(
+                'Provide both actual distance and its unit, or leave both blank.'
+            );
             return;
         }
 
-        if (actualDurationMinutes !== null &&
-            (!Number.isInteger(actualDurationMinutes) || actualDurationMinutes < 1 || actualDurationMinutes > 2147483647)) {
-            showError('Actual duration must be a positive whole number within the supported range.');
+        if (!isValidOptionalInteger(actualDurationMinutes, 1)) {
+            showError(
+                'Actual duration must be a positive whole number within the supported range.'
+            );
+            return;
+        }
+
+        if (!isValidOptionalInteger(stepCount, 0)) {
+            showError(
+                'Steps must be a non-negative whole number within the supported range.'
+            );
+            return;
+        }
+
+        if (!isValidOptionalInteger(caloriesBurnedKcal, 0)) {
+            showError(
+                'Calories burned must be a non-negative whole number within the supported range.'
+            );
+            return;
+        }
+
+        if (!isValidOptionalInteger(averageHeartRateBpm, 1)) {
+            showError(
+                'Average heart rate must be a positive whole number within the supported range.'
+            );
             return;
         }
 
@@ -96,6 +143,9 @@ export default function CreateWorkoutLogForm(props: {planId: string; workoutId: 
             actualDistance,
             distanceUnit,
             actualDurationMinutes,
+            stepCount,
+            caloriesBurnedKcal,
+            averageHeartRateBpm,
             notes: notes === '' ? null : notes,
         };
 
@@ -126,8 +176,7 @@ export default function CreateWorkoutLogForm(props: {planId: string; workoutId: 
 
     return (
         <form className="workout-log-form" aria-busy={saving} onSubmit={(event) => {
-            event.preventDefault();
-            void handleSubmit(event.currentTarget);
+                event.preventDefault();void handleSubmit(event.currentTarget);
         }}
         >
             <h6>Log workout</h6>
@@ -145,7 +194,7 @@ export default function CreateWorkoutLogForm(props: {planId: string; workoutId: 
                 <p>
                     <label>
                         Actual duration in minutes (optional)
-                        <input name="actualDurationMinutes" type="number" min={1} max={2147483647} step={1}/>
+                        <input name="actualDurationMinutes" type="number" min={1} max={MAX_INTEGER} step={1}/>
                     </label>
                 </p>
             </fieldset>
@@ -165,6 +214,7 @@ export default function CreateWorkoutLogForm(props: {planId: string; workoutId: 
                         Distance unit
                         <select name="distanceUnit" defaultValue="">
                             <option value="">Not provided</option>
+
                             {distanceOptions.map((option) => (
                                 <option key={option.value} value={option.value}>
                                     {option.label}
@@ -175,12 +225,41 @@ export default function CreateWorkoutLogForm(props: {planId: string; workoutId: 
                 </p>
             </fieldset>
 
-            <p>
-                <label>
-                    Notes (optional)
-                    <textarea name="notes" rows={3} disabled={saving || saved}/>
-                </label>
-            </p>
+            <fieldset disabled={saving || saved}>
+                <legend>Additional metrics (optional)</legend>
+
+                <p>
+                    <label>
+                        Steps
+                        <input name="stepCount" type="number" min={0} max={MAX_INTEGER} step={1}/>
+                    </label>
+                </p>
+
+                <p>
+                    <label>
+                        Calories burned (kcal)
+                        <input name="caloriesBurnedKcal" type="number" min={0} max={MAX_INTEGER} step={1}/>
+                    </label>
+                </p>
+
+                <p>
+                    <label>
+                        Average heart rate (bpm)
+                        <input name="averageHeartRateBpm" type="number" min={1} max={MAX_INTEGER} step={1}/>
+                    </label>
+                </p>
+            </fieldset>
+
+            <fieldset disabled={saving || saved}>
+                <legend>Notes (optional)</legend>
+
+                <p>
+                    <label>
+                        Workout notes
+                        <textarea name="notes" rows={3}/>
+                    </label>
+                </p>
+            </fieldset>
 
             <button type="submit" disabled={saving || saved}>
                 {saving ? 'Saving...' : saved ? 'Workout logged' : 'Save workout log'}
