@@ -66,6 +66,10 @@ html body {
   max-width: 96rem;
 }
 
+.app [hidden] {
+  display: none !important;
+}
+
 .app :is(h1, h2, h3, h4, h5, h6) {
   color: var(--color-text);
   font-family: inherit;
@@ -292,6 +296,154 @@ body:has(.athlete-dashboard) .app-header {
   border-color: #567040;
   background: var(--color-raised);
   color: var(--color-primary);
+}
+
+/* Signed-in application layout */
+.app.app-shell {
+  display: grid;
+  grid-template-columns: 14rem minmax(0, 1fr);
+  align-items: start;
+  align-content: start;
+  width: 100%;
+  max-width: none;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+}
+
+.app-main {
+  width: 100%;
+  min-width: 0;
+  max-width: 100rem;
+  min-height: 100dvh;
+  margin-inline: auto;
+  padding: 1.75rem clamp(1.25rem, 2.5vw, 2.5rem) 4rem;
+}
+
+.app-main > .app-header {
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+  padding: 0.25rem 0 0.75rem;
+}
+
+.app-main > .app-header > div:first-child {
+  min-width: 0;
+}
+
+.app-main .account-controls {
+  flex: 0 0 auto;
+}
+
+/* Left navigation */
+.app-sidebar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-self: start;
+  gap: 1.5rem;
+  width: 100%;
+  height: 100dvh;
+  min-height: 0;
+  padding: 2rem 1.1rem 1.25rem;
+  border-right: 1px solid var(--color-border);
+  background: rgb(11 17 21 / 94%);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #536774 transparent;
+  backdrop-filter: blur(16px);
+}
+
+.sidebar-brand {
+  padding: 0.5rem 0.75rem 1rem;
+}
+
+.sidebar-brand .app-name {
+  margin: 0;
+}
+
+.sidebar-nav {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.app-sidebar .sidebar-link,
+.app-sidebar .sidebar-sign-out {
+  justify-content: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+  min-height: 3rem;
+  padding: 0.8rem 0.9rem;
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-muted);
+  box-shadow: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.app-sidebar :is(.sidebar-link, .sidebar-sign-out):hover:not(:disabled) {
+  border-color: var(--color-border);
+  background: var(--color-raised);
+  color: var(--color-text);
+  box-shadow: none;
+  transform: none;
+}
+
+.app-sidebar .sidebar-link[aria-current="page"],
+.app-sidebar .sidebar-link[aria-current="page"]:hover:not(:disabled) {
+  border-color: rgb(201 242 122 / 22%);
+  background: rgb(201 242 122 / 10%);
+  color: var(--color-primary);
+}
+
+.sidebar-icon {
+  display: block;
+  flex: 0 0 auto;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.sidebar-link > span,
+.sidebar-sign-out > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sidebar-footer {
+  min-width: 0;
+  margin-top: auto;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.sidebar-account-label {
+  margin: 0 0 0.25rem;
+  color: var(--color-muted);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sidebar-email {
+  margin: 0 0 1rem;
+  color: var(--color-text);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.app-sidebar .sidebar-sign-out:hover:not(:disabled) {
+  border-color: rgb(255 177 185 / 25%);
+  background: rgb(255 177 185 / 7%);
+  color: var(--color-danger);
 }
 
 /* Shared forms */
@@ -610,6 +762,8 @@ body:has(.athlete-dashboard) .app-header {
 .app > [role="status"],
 .athlete-dashboard > [role],
 .training-plans > [role],
+.dashboard-view > [role],
+.profile-view > [role],
 :where(.app) :is(form, .auth-form) > [role] {
   margin: 0 0 1rem;
   padding: 0.95rem 1rem;
@@ -634,6 +788,7 @@ body:has(.athlete-dashboard) .app-header {
   .workout-log-form
 ) > [role="status"],
 .athlete-dashboard > .profile-update-message,
+.profile-view > .profile-update-message,
 .training-plans > .plan-update-message {
   border-color: #3f5637;
   background: #1b2a20;
@@ -653,6 +808,16 @@ body:has(.athlete-dashboard) .app-header {
   text-align: center;
 }
 
+.workspace-load-error {
+  margin-bottom: 1.25rem;
+}
+
+.workspace-load-error > p:not([role]) {
+  margin: 0 0 0.85rem;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+}
+
 /* Shared dashboard cards */
 .athlete-dashboard {
   min-width: 0;
@@ -663,7 +828,8 @@ body:has(.athlete-dashboard) .app-header {
 .training-assistant,
 .weekly-stat-card,
 .weekly-detail-card,
-.weekly-metric-chart {
+.weekly-metric-chart,
+.profile-setup {
   min-width: 0;
   border: 1px solid var(--color-border);
   border-radius: 1rem;
@@ -672,7 +838,7 @@ body:has(.athlete-dashboard) .app-header {
   overflow-wrap: anywhere;
 }
 
-/* Profile overview */
+/* Profile overview and setup */
 .profile-card {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -719,18 +885,44 @@ body:has(.athlete-dashboard) .app-header {
   margin-top: 1rem;
 }
 
+.profile-setup {
+  padding: 1.5rem;
+}
+
+.profile-setup > h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  letter-spacing: -0.025em;
+}
+
+.profile-setup > p {
+  max-width: 55ch;
+  margin: 0.75rem 0 1.25rem;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
 /* Training workspace and assistant sidebar */
 .training-workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(20rem, 27vw, 24rem);
+  grid-template-columns: minmax(0, 1fr) clamp(18rem, 23vw, 22rem);
   align-items: start;
   gap: 1.5rem;
   min-width: 0;
   margin-top: 2.5rem;
 }
 
-.training-workspace > .training-plans {
+.app-main .training-workspace {
+  margin-top: 0;
+}
+
+.training-workspace-main,
+.dashboard-view,
+.profile-view {
   min-width: 0;
+}
+
+.training-workspace-main > .training-plans {
   margin-top: 0;
 }
 
@@ -766,7 +958,7 @@ body:has(.athlete-dashboard) .app-header {
   display: grid;
   gap: 1rem;
   min-width: 0;
-  margin-bottom: 2.5rem;
+  margin-bottom: 0;
 }
 
 .weekly-overview-header {
@@ -1592,15 +1784,16 @@ body:has(.athlete-dashboard) .app-header {
   white-space: pre-wrap;
 }
 
-/* Summary cards on narrower desktops */
-@media (max-width: 1350px) {
-  .weekly-stat-grid {
+/* Cards on narrower desktops */
+@media (max-width: 1550px) {
+  .weekly-stat-grid,
+  .profile-card {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-/* Narrow dashboard layout */
-@media (max-width: 1100px) {
+/* Stack the assistant when three columns become too narrow */
+@media (max-width: 1200px) {
   .training-workspace {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1614,8 +1807,70 @@ body:has(.athlete-dashboard) .app-header {
   }
 }
 
-/* Tablet authentication layout */
+/* Compact navigation and tablet authentication layout */
 @media (max-width: 900px) {
+  .app.app-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-main {
+    min-height: 0;
+  }
+
+  .app-sidebar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    height: auto;
+    padding: 0.85rem 1rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+    overflow: visible;
+    overscroll-behavior: auto;
+  }
+
+  .sidebar-brand {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+    padding: 0;
+  }
+
+  .sidebar-nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .app-sidebar .sidebar-link {
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.65rem 0.5rem;
+    font-size: 0.8125rem;
+    text-align: center;
+  }
+
+  .sidebar-footer {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .sidebar-account-label,
+  .sidebar-email {
+    display: none;
+  }
+
+  .app-sidebar .sidebar-sign-out {
+    width: auto;
+    min-height: 2.75rem;
+    padding: 0.55rem 0.65rem;
+    font-size: 0.8rem;
+  }
+
   .app:has(> .auth-form) {
     grid-template-columns: minmax(0, 1fr);
     gap: 1.5rem;
@@ -1651,6 +1906,10 @@ body:has(.athlete-dashboard) .app-header {
 @media (max-width: 720px) {
   .app {
     padding: 1rem 1rem 2.5rem;
+  }
+
+  .app-main {
+    padding: 1.25rem 1rem 2.5rem;
   }
 
   .app-header {
@@ -1743,6 +2002,18 @@ body:has(.athlete-dashboard) .app-header {
 
 /* Small phones */
 @media (max-width: 480px) {
+  .sidebar-nav {
+    gap: 0.35rem;
+  }
+
+  .app-sidebar .sidebar-link {
+    font-size: 0.78rem;
+  }
+
+  .sidebar-link .sidebar-icon {
+    display: none;
+  }
+
   .app:has(> .auth-form) {
     padding: 1rem;
   }
@@ -1774,7 +2045,8 @@ body:has(.athlete-dashboard) .app-header {
   .plan-generation-form,
   .weekly-stat-card,
   .weekly-detail-card,
-  .weekly-metric-chart {
+  .weekly-metric-chart,
+  .profile-setup {
     padding: 1.1rem;
   }
 
