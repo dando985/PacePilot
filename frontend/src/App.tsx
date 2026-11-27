@@ -3,6 +3,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import {getCurrentAccount, logout} from './api/auth';
 import {getCurrentAthleteProfile} from './api/athletes';
 import {ApiError} from './api/client';
+import AppSidebar from './components/AppSidebar';
 import CreateAthleteProfileForm from './components/CreateAthleteProfileForm';
 import EditAthleteProfileForm from './components/EditAthleteProfileForm';
 import LoginForm from './components/LoginForm';
@@ -10,6 +11,7 @@ import RegisterForm from './components/RegisterForm';
 import TrainingPlansPanel from './components/TrainingPlansPanel';
 
 import type {AthleteProfile, ExperienceLevel, Gender, UserAccount} from './api/types';
+import type {DashboardView} from './components/AppSidebar';
 
 import './App.css';
 
@@ -44,9 +46,16 @@ const birthDateFormatter = new Intl.DateTimeFormat(undefined, {
   timeZone: 'UTC',
 });
 
+const viewTitles: Record<DashboardView, string> = {
+  dashboard: 'Dashboard',
+  'training-plans': 'Training plans',
+  profile: 'Profile',
+};
+
 export default function App() {
   const [session, setSession] = useState<SessionState>({status: 'loading'});
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [activeView, setActiveView] = useState<DashboardView>('dashboard');
   const [sessionReload, setSessionReload] = useState(0);
   const logoutPending = useRef(false);
 
@@ -93,6 +102,7 @@ export default function App() {
 
   function handleLoggedIn(account: UserAccount) {
     setAuthMode('login');
+    setActiveView('dashboard');
     setSession({status: 'authenticated', account});
   }
 
@@ -107,6 +117,7 @@ export default function App() {
     try {
       await logout();
       setAuthMode('login');
+      setActiveView('dashboard');
       setSession({status: 'anonymous'});
     } catch {
       setSession({status: 'error', message: 'Unable to confirm sign-out. Please try again.', retry: 'logout'});
@@ -123,31 +134,50 @@ export default function App() {
     }
   }
 
-  const account = session.status === 'authenticated' ? session.account : null;
+  if (session.status === 'authenticated') {
+    const account = session.account;
+
+    return (
+        <div className="app app-shell">
+          <AppSidebar
+              email={account.email}
+              activeView={activeView}
+              onNavigate={setActiveView}
+              onSignOut={() => void handleLogout()}
+          />
+
+          <main className="app-main" aria-labelledby="app-page-title">
+            <header className="app-header">
+              <div>
+                <h1 id="app-page-title">{viewTitles[activeView]}</h1>
+              </div>
+
+              <div className="account-controls">
+                <button type="button" onClick={reloadSession}>
+                  Refresh
+                </button>
+              </div>
+            </header>
+
+            <AthleteDashboard
+                key={account.id}
+                accountId={account.id}
+                activeView={activeView}
+                onNavigate={setActiveView}
+                onSessionExpired={handleSessionExpired}
+            />
+          </main>
+        </div>
+    );
+  }
 
   return (
       <main className="app">
         <header className="app-header">
           <div>
             <p className="app-name">PacePilot</p>
-            <h1>
-              {account === null ? 'Find your pace.' : 'Your training overview'}
-            </h1>
+            <h1>Find your pace.</h1>
           </div>
-
-          {account !== null && (
-              <div className="account-controls">
-                <span>{account.email}</span>
-
-                <button type="button" onClick={reloadSession}>
-                  Refresh
-                </button>
-
-                <button type="button" onClick={() => void handleLogout()}>
-                  Sign out
-                </button>
-              </div>
-          )}
         </header>
 
         {session.status === 'loading' && (<p role="status">Checking your session...</p>)}
@@ -157,28 +187,35 @@ export default function App() {
         {session.status === 'error' && (
             <section>
               <p role="alert">{session.message}</p>
-
               <button type="button" onClick={retrySessionRequest}>
                 {session.retry === 'logout' ? 'Retry sign out' : 'Retry'}
               </button>
             </section>
         )}
 
-        {session.status === 'anonymous' && (authMode === 'login' ? (
-                <LoginForm onLoggedIn={handleLoggedIn} onShowRegistration={() => setAuthMode('register')}/>)
-                : (<RegisterForm onShowLogin={() => setAuthMode('login')}/>
-                )
-        )}
-
-        {account !== null && (
-            <AthleteDashboard key={account.id} accountId={account.id} onSessionExpired={handleSessionExpired}/>
+        {session.status === 'anonymous' && (
+            authMode === 'login' ? (
+                <LoginForm
+                    onLoggedIn={handleLoggedIn}
+                    onShowRegistration={() => setAuthMode('register')}
+                />
+            ) : (
+                <RegisterForm onShowLogin={() => setAuthMode('login')}/>
+            )
         )}
       </main>
   );
 }
 
-function AthleteDashboard(props: {accountId: string; onSessionExpired: (accountId: string) => void;}) {
-  const [profileState, setProfileState] = useState<ProfileState>({status: 'loading'});
+function AthleteDashboard(
+    props: {
+      accountId: string;
+      activeView: DashboardView;
+      onNavigate: (view: DashboardView) => void;
+      onSessionExpired: (accountId: string) => void;
+    }
+) {
+  const [profileState, setProfileState] = useState<ProfileState>({status: 'loading',});
   const [reloadCount, setReloadCount] = useState(0);
   const [editing, setEditing] = useState(false);
   const [profileMessage, setProfileMessage] = useState<string | null>(null);
@@ -203,10 +240,7 @@ function AthleteDashboard(props: {accountId: string; onSessionExpired: (accountI
           return;
         }
 
-        setProfileState({
-          status: 'error',
-          message: 'Unable to load your athlete profile. Please try again.',
-        });
+        setProfileState({status: 'error', message: 'Unable to load your athlete profile. Please try again.'});
       }
     }
 
@@ -232,24 +266,44 @@ function AthleteDashboard(props: {accountId: string; onSessionExpired: (accountI
 
   return (
       <section className="athlete-dashboard" aria-label="Athlete dashboard">
-        {profileState.status === 'loading' && (<p role="status">Loading your athlete profile...</p>)}
+        {profileState.status === 'loading' && (
+            <p role="status">Loading your athlete profile...</p>
+        )}
 
         {profileState.status === 'error' && (
             <div>
               <p role="alert">{profileState.message}</p>
-
               <button type="button" onClick={reloadProfile}>
                 Retry profile
               </button>
             </div>
         )}
 
-        {profileMessage !== null && (<p role="status" className="profile-update-message">{profileMessage}</p>)}
-
-        {profileState.status === 'success' && profile === null && (<CreateAthleteProfileForm onCreated={reloadProfile}/>)}
+        {profileState.status === 'success' && profile === null && (
+            props.activeView === 'profile' ? (
+                <CreateAthleteProfileForm onCreated={reloadProfile}/>
+            ) : (
+                <section className="profile-setup">
+                  <h2>Create your athlete profile</h2>
+                  <p>
+                    Add your athlete details to start building training
+                    plans and recording workouts.
+                  </p>
+                  <button type="button" onClick={() => props.onNavigate('profile')}>
+                    Set up profile
+                  </button>
+                </section>
+            )
+        )}
 
         {profile !== null && (
-            <>
+            <TrainingPlansPanel key={`training-plans:${profile.id}`} athleteId={profile.id} activeView={props.activeView}>
+              {profileMessage !== null && (
+                  <p role="status" className="profile-update-message">
+                    {profileMessage}
+                  </p>
+              )}
+
               <article className="profile-card">
                 <h2>{profile.displayName}</h2>
 
@@ -258,7 +312,9 @@ function AthleteDashboard(props: {accountId: string; onSessionExpired: (accountI
                   <br/>
                   <strong>
                     <time dateTime={profile.birthDate}>
-                      {birthDateFormatter.format(new Date(`${profile.birthDate}T00:00:00Z`))}
+                      {birthDateFormatter.format(
+                          new Date(`${profile.birthDate}T00:00:00Z`)
+                      )}
                     </time>
                   </strong>
                 </p>
@@ -288,19 +344,22 @@ function AthleteDashboard(props: {accountId: string; onSessionExpired: (accountI
 
                 {!editing && (
                     <div className="profile-card-actions">
-                      <button type="button" onClick={() => {setProfileMessage(null);setEditing(true);}}>
+                      <button
+                          type="button"
+                          onClick={() => {setProfileMessage(null);setEditing(true);}}
+                      >
                         Edit profile
                       </button>
                     </div>
                 )}
               </article>
 
-              {editing &&
-                  (<EditAthleteProfileForm key={`edit-profile:${profile.id}`} profile={profile}
-                                           onUpdated={handleProfileUpdated} onCancel={() => setEditing(false)}/>)}
-
-              <TrainingPlansPanel key={`training-plans:${profile.id}`} athleteId={profile.id}/>
-            </>
+              {editing && (
+                  <EditAthleteProfileForm key={`edit-profile:${profile.id}`} profile={profile}
+                                          onUpdated={handleProfileUpdated} onCancel={() => setEditing(false)}
+                  />
+              )}
+            </TrainingPlansPanel>
         )}
       </section>
   );
