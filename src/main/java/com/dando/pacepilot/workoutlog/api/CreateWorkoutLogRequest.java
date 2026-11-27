@@ -4,6 +4,7 @@ import com.dando.pacepilot.shared.domain.DistanceUnit;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 
 import java.time.LocalDate;
 
@@ -14,6 +15,9 @@ public record CreateWorkoutLogRequest(
         @Positive Double actualDistance,
         DistanceUnit distanceUnit,
         @Positive Integer actualDurationMinutes,
+        @PositiveOrZero Integer stepCount,
+        @PositiveOrZero Integer caloriesBurnedKcal,
+        @Positive Integer averageHeartRateBpm,
         String notes
 ) {
 }
