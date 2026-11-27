@@ -421,6 +421,22 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                                                                                 </p>
                                                                             )}
 
+                                                                            {typeof log.stepCount === 'number' && (
+                                                                                <p>Steps: {log.stepCount.toLocaleString()}</p>
+                                                                            )}
+
+                                                                            {typeof log.caloriesBurnedKcal === 'number' && (
+                                                                                <p>
+                                                                                    Calories burned: {log.caloriesBurnedKcal.toLocaleString()} kcal
+                                                                                </p>
+                                                                            )}
+
+                                                                            {typeof log.averageHeartRateBpm === 'number' && (
+                                                                                <p>
+                                                                                    Average heart rate: {log.averageHeartRateBpm.toLocaleString()} bpm
+                                                                                </p>
+                                                                            )}
+
                                                                             {log.notes !== null && (
                                                                                 <p className="workout-log-notes">
                                                                                     Notes: {log.notes}
