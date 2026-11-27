@@ -1,4 +1,5 @@
 import {useEffect, useRef, useState} from 'react';
+import type {ReactNode} from 'react';
 
 import {getTrainingPlans, setTrainingPlanArchived} from '../api/trainingPlans';
 import {getWorkoutLogs} from '../api/workoutLogs';
@@ -12,6 +13,7 @@ import WeeklyTrainingOverview from './WeeklyTrainingOverview';
 import {ApiError} from '../api/client';
 
 import type {DistanceUnit, GoalType, TrainingPlan, WorkoutLog} from '../api/types';
+import type {DashboardView} from './AppSidebar';
 
 type PlanState =
     | { status: 'loading'; plans: TrainingPlan[]; logs: WorkoutLog[] | null; }
@@ -37,7 +39,7 @@ const distanceLabels: Record<DistanceUnit, string> = {
     KILOMETERS: 'Kilometers',
 };
 
-export default function TrainingPlansPanel(props: {athleteId: string}) {
+export default function TrainingPlansPanel(props: {athleteId: string; activeView?: DashboardView; children?: ReactNode;}) {
     const [planState, setPlanState] = useState<PlanState>({status: 'loading', plans: [], logs: null});
     const [reloadCount, setReloadCount] = useState(0);
     const [renamingPlanId, setRenamingPlanId] = useState<string | null>(null);
@@ -49,6 +51,9 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
     const [generationFormVersion, setGenerationFormVersion] = useState(0);
 
     const generationFormId = `plan-generation-${props.athleteId}`;
+
+    const showDashboard = props.activeView === undefined || props.activeView === 'dashboard';
+    const showTrainingPlans = props.activeView === undefined || props.activeView === 'training-plans';
 
     const archivePending = useRef(false);
     const archiving = archiveState.status === 'saving';
@@ -228,9 +233,34 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
 
     return (
         <div className="training-workspace">
-            <section className="training-plans">
-                {planState.logs !== null && (
-                    <WeeklyTrainingOverview athleteId={props.athleteId} plans={planState.plans} logs={planState.logs}/>)}
+            <div className="training-workspace-main">
+                <section className="dashboard-view" aria-label="Weekly training overview" hidden={!showDashboard}>
+                    {planState.status === 'loading' && (
+                        <p role="status">
+                            {planState.logs === null ? 'Loading your training data...' : 'Refreshing your training data...'}
+                        </p>
+                    )}
+
+                    {planState.status === 'error' && (
+                        <div className="workspace-load-error">
+                            <p role="alert">{planState.message}</p>
+
+                            {planState.logs !== null && (
+                                <p>Showing previously loaded training data.</p>
+                            )}
+
+                            <button type="button" onClick={reloadPlans} disabled={archiving}>
+                                Retry
+                            </button>
+                        </div>
+                    )}
+
+                    {planState.logs !== null && (
+                        <WeeklyTrainingOverview athleteId={props.athleteId} plans={planState.plans} logs={planState.logs}/>
+                    )}
+                </section>
+
+                <section className="training-plans" aria-label="Training plans" hidden={!showTrainingPlans}>
             <header className="training-plans-header">
                 <h2>Training plans</h2>
 
@@ -271,10 +301,7 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
             {planState.status === 'success' && planState.plans.length > 0 && (
                 <p className="plan-archive-filter">
                     <label>
-                        <input
-                            type="checkbox"
-                            checked={showArchived}
-                            onChange={(event) => setShowArchived(event.currentTarget.checked)}
+                        <input type="checkbox" checked={showArchived} onChange={(event) => setShowArchived(event.currentTarget.checked)}
                             disabled={archiving}
                         />
                         Show archived plans
@@ -471,7 +498,12 @@ export default function TrainingPlansPanel(props: {athleteId: string}) {
                 )
             )}
 
-            </section>
+                </section>
+
+                <section className="profile-view" aria-label="Athlete profile" hidden={props.activeView !== 'profile'}>
+                    {props.children}
+                </section>
+            </div>
 
             <aside className="assistant-sidebar" aria-label="Training assistant">
                 <TrainingAssistantPanel athleteId={props.athleteId} plans={planState.plans}/>
