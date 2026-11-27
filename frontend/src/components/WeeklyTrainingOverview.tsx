@@ -72,7 +72,7 @@ export default function WeeklyTrainingOverview(props: { athleteId: string; plans
     const cards = [
         {
             id: 'distance',
-            label: 'Running distance',
+            label: 'Recorded distance',
             value: formatNumber(summary.distance, 2),
             unit: summary.distance === null ? '' : unit,
             note: logCountText(counts.distance),
@@ -86,14 +86,14 @@ export default function WeeklyTrainingOverview(props: { athleteId: string; plans
         },
         {
             id: 'workouts',
-            label: 'Workouts logged',
+            label: 'Workout logs',
             value: formatNumber(summary.workoutCount),
             unit: '',
-            note: 'Rest-day logs are excluded.',
+            note: 'Includes rest-day logs.',
         },
         {
             id: 'pace',
-            label: 'Average running pace',
+            label: 'Average pace',
             value: formatPace(summary.paceSeconds),
             unit: summary.paceSeconds === null ? '' : `min/${unit}`,
             note: logCountText(counts.paceSeconds),
@@ -226,7 +226,7 @@ export default function WeeklyTrainingOverview(props: { athleteId: string; plans
                     </p>
 
                     <p className="weekly-stat-note">
-                        Days with logged training. Rest-day logs are excluded.
+                        Days with logged training.
                     </p>
 
                     <ul className="weekly-consistency-days">

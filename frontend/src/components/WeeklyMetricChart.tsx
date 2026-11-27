@@ -18,9 +18,9 @@ import type {
 } from '../utils/weeklyTrainingMetrics';
 
 const metricOptions: {value: WeeklyMetric; label: string}[] = [
-    {value: 'distance', label: 'Running distance'},
+    {value: 'distance', label: 'Recorded distance'},
     {value: 'durationMinutes', label: 'Training time'},
-    {value: 'paceSeconds', label: 'Average running pace'},
+    {value: 'paceSeconds', label: 'Average pace'},
     {value: 'stepCount', label: 'Steps'},
     {value: 'caloriesBurnedKcal', label: 'Calories burned'},
     {value: 'averageHeartRateBpm', label: 'Average workout heart rate'},
@@ -80,16 +80,15 @@ export default function WeeklyMetricChart(props: {data: WeeklyTrainingMetrics}) 
     };
 
     const descriptions: Record<WeeklyMetric, string> = {
-        distance: `Recorded running distance in ${distanceUnit}.`,
+        distance: `Recorded distance in ${distanceUnit}.`,
         durationMinutes: 'Total recorded workout time in minutes.',
-        paceSeconds: `Combined running pace in min/${distanceUnit}. Lower values mean faster running.`,
+        paceSeconds: `Combined pace in min/${distanceUnit} from logs with both distance and duration. Lower values mean a faster pace.`,
         stepCount: 'Steps recorded in workout logs.',
-        caloriesBurnedKcal: 'Calories recorded in workout logs, in kcal.',
-        averageHeartRateBpm: 'Mean of the recorded workout heart-rate averages, in bpm.',
+        caloriesBurnedKcal: 'Calories recorded in workout logs in kcal.',
+        averageHeartRateBpm: 'Mean of recorded workout heart-rate averages in bpm.',
     };
 
-    const metricLabel = metricOptions.find(
-        (option) => option.value === metric)?.label ?? 'Running distance';
+    const metricLabel = metricOptions.find((option) => option.value === metric)?.label ?? 'Recorded distance';
 
     const chartData = props.data.days.map((day) => {
         const value = day[metric];
@@ -226,7 +225,6 @@ export default function WeeklyMetricChart(props: {data: WeeklyTrainingMetrics}) 
                 <div className="weekly-chart-table">
                     <table>
                         <caption>{metricLabel} by day</caption>
-
                         <thead>
                         <tr>
                             <th scope="col">Day</th>
