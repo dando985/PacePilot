@@ -56,6 +56,9 @@ public class PostgresWorkoutLogRepository implements WorkoutLogRepository {
                 log.actualDistance(),
                 log.distanceUnit(),
                 log.actualDurationMinutes(),
+                log.stepCount(),
+                log.caloriesBurnedKcal(),
+                log.averageHeartRateBpm(),
                 log.notes()
         );
     }
@@ -69,6 +72,9 @@ public class PostgresWorkoutLogRepository implements WorkoutLogRepository {
                 entity.getActualDistance(),
                 entity.getDistanceUnit(),
                 entity.getActualDurationMinutes(),
+                entity.getStepCount(),
+                entity.getCaloriesBurnedKcal(),
+                entity.getAverageHeartRateBpm(),
                 entity.getNotes()
         );
     }
