@@ -36,10 +36,6 @@ function formatDuration(minutes: number | null): string {
     return remaining === 0 ? `${hours.toLocaleString()} hr` : `${hours.toLocaleString()} hr ${remaining.toLocaleString()} min`;
 }
 
-function logCountText(count: number): string {
-    return count === 0 ? 'No measurements recorded.' : `From ${count.toLocaleString()} workout ${count === 1 ? 'log' : 'logs'}.`;
-}
-
 export default function WeeklyTrainingOverview(props: { athleteId: string; plans: TrainingPlan[]; logs: WorkoutLog[]; }) {
     const headingId = useId();
     const [weekStart, setWeekStart] = useState(() => getWeekStart());
@@ -63,7 +59,6 @@ export default function WeeklyTrainingOverview(props: { athleteId: string; plans
     );
 
     const {summary} = metrics;
-    const counts = summary.recordedCounts;
     const longestRun = summary.longestRun;
 
     const unit = distanceUnit === 'MILES' ? 'mi' : 'km';
@@ -72,31 +67,31 @@ export default function WeeklyTrainingOverview(props: { athleteId: string; plans
     const cards = [
         {
             id: 'distance',
-            label: 'Recorded distance',
+            label: 'Total running distance',
             value: formatNumber(summary.distance, 2),
             unit: summary.distance === null ? '' : unit,
-            note: logCountText(counts.distance),
+            note: '',
         },
         {
             id: 'duration',
             label: 'Training time',
             value: formatDuration(summary.durationMinutes),
             unit: '',
-            note: logCountText(counts.durationMinutes),
+            note: '',
         },
         {
             id: 'workouts',
-            label: 'Workout logs',
+            label: 'Completed Workouts',
             value: formatNumber(summary.workoutCount),
             unit: '',
-            note: 'Includes rest-day logs.',
+            note: '',
         },
         {
             id: 'pace',
             label: 'Average pace',
             value: formatPace(summary.paceSeconds),
             unit: summary.paceSeconds === null ? '' : `min/${unit}`,
-            note: logCountText(counts.paceSeconds),
+            note: '',
         },
     ];
 
@@ -235,17 +230,9 @@ export default function WeeklyTrainingOverview(props: { athleteId: string; plans
                                 <time dateTime={day.date} title={formatDate(day.date)}>
                                     {day.label}
                                 </time>
-
-                                <span>
-                                    {day.workoutCount.toLocaleString()}
-                                </span>
                             </li>
                         ))}
                     </ul>
-
-                    <p className="weekly-stat-note">
-                        Workouts logged per day.
-                    </p>
                 </article>
             </div>
         </section>
