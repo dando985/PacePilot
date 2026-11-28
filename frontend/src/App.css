@@ -829,6 +829,7 @@ body:has(.athlete-dashboard) .app-header {
 .weekly-stat-card,
 .weekly-detail-card,
 .weekly-metric-chart,
+.today-workout-card,
 .profile-setup {
   min-width: 0;
   border: 1px solid var(--color-border);
@@ -951,6 +952,171 @@ body:has(.athlete-dashboard) .app-header {
   border: 0;
   border-radius: inherit;
   box-shadow: none;
+}
+
+/* Today's workout */
+.today-workout-card {
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  border-color: #3f5339;
+  background:
+          linear-gradient(135deg, rgb(201 242 122 / 5%), transparent 65%),
+          var(--color-surface);
+}
+
+.today-workout-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.today-workout-header > h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: -0.035em;
+}
+
+.today-workout-header > time {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.today-workout-list {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.today-workout-list > li {
+  min-width: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.85rem;
+  background: var(--color-input);
+}
+
+.today-workout-item-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+}
+
+.today-workout-item-header > div {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.today-workout-plan {
+  margin: 0 0 0.35rem;
+  color: var(--color-muted);
+  font-size: 0.72rem;
+  font-weight: 550;
+}
+
+.today-workout-item-header h3 {
+  margin: 0;
+  font-size: clamp(1.15rem, 2vw, 1.5rem);
+  letter-spacing: -0.03em;
+  line-height: 1.35;
+}
+
+.today-workout-status {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  min-height: 1.8rem;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid #4a5360;
+  border-radius: 999px;
+  background: var(--color-raised);
+  color: var(--color-muted);
+  font-size: 0.67rem;
+  font-weight: 650;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.today-workout-status[data-logged="true"] {
+  border-color: #4a6538;
+  background: #223224;
+  color: var(--color-primary);
+}
+
+.today-workout-type {
+  display: inline-flex;
+  margin: 0.9rem 0 0;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.4rem;
+  background: var(--color-surface);
+  color: var(--color-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.today-workout-targets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1.1rem 0 0;
+}
+
+.today-workout-targets > div {
+  flex: 1 1 10rem;
+  min-width: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.65rem;
+  background: var(--color-surface);
+}
+
+.today-workout-targets dt {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+}
+
+.today-workout-targets dd {
+  margin: 0.3rem 0 0;
+  color: var(--color-text);
+  font-size: 1.25rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.025em;
+  line-height: 1.35;
+}
+
+.today-workout-instructions {
+  margin: 1rem 0 0;
+  color: #d0dce2;
+  font-size: 0.875rem;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.today-workout-log-note {
+  margin: 0.9rem 0 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-success);
+  font-size: 0.75rem;
+}
+
+.today-workout-empty {
+  margin: 0;
+  padding: 1.5rem 1rem;
+  border: 1px dashed var(--color-border);
+  border-radius: 0.75rem;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  text-align: center;
 }
 
 /* Weekly overview and controls */
@@ -1229,7 +1395,7 @@ body:has(.athlete-dashboard) .app-header {
   border-bottom: 0;
 }
 
-/* Longest run and training consistency */
+/* Longest distance and logging consistency */
 .weekly-detail-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2046,12 +2212,17 @@ body:has(.athlete-dashboard) .app-header {
   .weekly-stat-card,
   .weekly-detail-card,
   .weekly-metric-chart,
+  .today-workout-card,
   .profile-setup {
     padding: 1.1rem;
   }
 
   .profile-card > h2 {
     font-size: 1.35rem;
+  }
+
+  .today-workout-list > li {
+    padding: 1rem;
   }
 
   .plan-progress-totals {
