@@ -10,6 +10,7 @@ import TrainingAssistantPanel from './TrainingAssistantPanel';
 import TrainingPlanProgressSummary from './TrainingPlanProgressSummary';
 import WeeklyTrainingOverview from './WeeklyTrainingOverview';
 import {deleteWorkoutLog, getWorkoutLogs} from '../api/workoutLogs';
+import TodayWorkoutCard from './TodayWorkoutCard';
 import {ApiError} from '../api/client';
 
 import type {DistanceUnit, GoalType, TrainingPlan, WorkoutLog} from '../api/types';
@@ -315,7 +316,7 @@ export default function TrainingPlansPanel(props: {athleteId: string; activeView
         <div className="training-workspace">
             <div className="training-workspace-main">
                 {logDeleteState.status === 'error' && (<p role="alert">{logDeleteState.message}</p>)}
-                <section className="dashboard-view" aria-label="Weekly training overview" hidden={!showDashboard}>
+                <section className="dashboard-view" aria-label="Training dashboard" hidden={!showDashboard}>
                     {planState.status === 'loading' && (
                         <p role="status">
                             {planState.logs === null ? 'Loading your training data...' : 'Refreshing your training data...'}
@@ -337,7 +338,11 @@ export default function TrainingPlansPanel(props: {athleteId: string; activeView
                     )}
 
                     {planState.logs !== null && (
-                        <WeeklyTrainingOverview athleteId={props.athleteId} plans={planState.plans} logs={planState.logs}/>
+                        <>
+                            <TodayWorkoutCard athleteId={props.athleteId} plans={planState.plans} logs={planState.logs}/>
+
+                            <WeeklyTrainingOverview athleteId={props.athleteId} plans={planState.plans} logs={planState.logs}/>
+                        </>
                     )}
                 </section>
 
